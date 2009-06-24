@@ -47,25 +47,32 @@ def parser():       #Used to get information and put the data into
     trans = Transaction(parse_list)
     transaction_list.append(trans)
 
-
-#item_read = file.readline()          # Read first item
-#    item_read = item_read.strip("\n")   # strip the newline at the end
-#
-#    while item_read != "":
-#
-#        while item_read != "\n" or item_read != "":    # Loop through each item until
-#                                              # newline or end of file
-#            item_number = int(item_read)
-#            #print item_read
-#            print item_number
-#            print "____________________________________________"
-#            item_read = file.readline()
-#            item_read = item_read.strip("\n")
-#            #print "after: "
-            #print item_read
-            #print "88888888888"
-            #if item_read == "\n\n":
-            #   print "yo"
+    return transaction_list
 
 
-parser()
+def one_item_sets(T, minsup):
+
+    # initialize item dictionary to empty set
+    item_dict = {}
+
+    for transaction in T:
+        for item in transaction.item_set:
+            # Increment the counts of each number 0 to 9 by looking
+            # through each item of each transaction in the
+            # transaction_list T
+            if item in item_dict:
+                item_dict[item] += 1
+            else:
+                item_dict[item] = 1
+
+    frequency_qualifier(item_dict)
+
+    return item_dict
+
+
+
+
+
+transaction_list =  parser()
+#print transaction_list[0].item_set
+one_item_sets(transaction_list,3)
