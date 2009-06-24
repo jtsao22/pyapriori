@@ -26,20 +26,27 @@ def parser():       #Used to get information and put the data into
     parse_list = []      # create a list that parses the items
     transaction_list = []    # create a list that holds the transactions
 
-
-    for line in file.readlines():             # for each line in file
-        if line != '\n':
+     # for each line in file:
+    for line in file.readlines():
+        if line == '\n':
+            if parse_list != []:
+                # if line is newline and parse_list is empty, make a Transaction
+                # that is passed in the parse_list and put the Transactions in
+                # the transaction_list
+                trans = Transaction(parse_list)
+                transaction_list.append(trans)
+                parse_list = []
+        else:
+            # if line is not newline, change the line into an integer
+            # and add it to the parse_list
             item_read = int(line)
             parse_list.append(item_read)
-        else:
-            trans = Transaction(parse_list)
-            transaction_list.append(trans)
-            parse_list = []
 
+    # add the last Transaction to the transaction list (since for
+    # loop exits once it sees an end of file)
     trans = Transaction(parse_list)
     transaction_list.append(trans)
 
-    print transaction_list[1].item_set
 
 #item_read = file.readline()          # Read first item
 #    item_read = item_read.strip("\n")   # strip the newline at the end
