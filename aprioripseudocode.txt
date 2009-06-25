@@ -1,0 +1,60 @@
+Apriori Pseudocode
+
+Apriori(T (set of the sets of data), minsup (minimum support level to
+still be considered "frequent")
+
+#################################################################
+                     Transaction Class
+
+Functions:
+1. subset: used to check if set of items is contained within the
+transaction
+returns true/false
+
+Variables:
+set of items
+
+#################################################################
+
+Parser function: Used to get information and put the data into
+transactions
+parser()
+returns T
+
+Count 1-itemsets and keep only those with counts greater than or equal
+to minsup with function:
+one_item_sets(T, minsup)
+
+this function calls frequency_qualifier(item_dict), which takes in
+item_dict (L1) and minsup as input, and outputs f_item_dict, which is
+the item_dict with itemsets whose counts are greater than or equal to
+minsup
+
+returns L1 (the 1-itemsets with counts greater than or equal to minsup)
+
+generate function:
+generate(L1)
+returns Ck (the possible item sets that could be used (doesn't include
+the itemsets with counts greater/equal to minsup)
+
+subset function:
+subset(Ck,t (transactions))
+returns Ct (the sets in Ck that were found in the transactions)
+
+Lk
+
+
+data in
+text file
+
+sets of tokens
+
+1 token per line; token > 0
+set = collection of tokens; one on each line;
+there will be one more blank lines separating sets
+
+each transaction  = an object
+transaction has a method: subset to check if a set of items is contained
+within the transaction
+
+numbers = items
