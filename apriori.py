@@ -10,6 +10,9 @@ import string,sys
 # Transactions are sets of items
 class Transaction:
     item_set = set([])              # used to hold the set of items
+
+    count = 0                       # initialize its count to zero
+
     def __init__(self,item_set):    # function to initialize a
                                     #Transaction
         self.item_set = item_set
@@ -156,17 +159,19 @@ def generate(T,f_item_dict):
 ############################################################################
  # function takes in candidate transaction list and a transaction
 
-def Subset(cand_trans_list, trans_looking_for, cand_list_final):
+def Subset(cand_trans_list, trans_looking_for):
 
+    cand_list_final = set([])   # initialize the final candidate list
+                               # (with candidates found in T only)
     # Look through the trans_looking_for in the cand_trans_list
     for transaction in cand_trans_list:
         if trans_looking_for.subset(transaction):
             # if its found, check if its already in the final candidate
             # list.
-            if transaction not in cand_list_final:
+           # if transaction not in cand_list_final:
                 # if its not already there, add it to the final
                 # candidate list
-                cand_list_final.add(transaction)
+            cand_list_final.add(transaction)
     return cand_list_final
 
 
@@ -175,19 +180,36 @@ def Subset(cand_trans_list, trans_looking_for, cand_list_final):
 #                               Main                                       #
 ############################################################################
 
+minsup = 3
 transaction_list =  parser()
 #print transaction_list[0].item_set
-L_kminusone_set = one_item_sets(transaction_list,3)      #
+L_kminusone_set = one_item_sets(transaction_list,minsup)      #
 k = 2
 cand_trans_list = []
 cand_list_final = set([])
 
-#while L_kminusone_set != {}:
-cand_trans_list = generate(transaction_list,L_kminusone_set)
-for trans in transaction_list:
-    cand_list_final.union(Subset(cand_trans_list,trans,cand_list_final))
+while L_kminusone_set != []:
+    cand_trans_list = generate(transaction_list,L_kminusone_set)
+    for trans in transaction_list:
+        cand_list_final = Subset(cand_trans_list,trans)
+        for candidates in cand_list_final:
+            candidates.count += 1
+    L_k_set = []
+    for c in cand_trans_list:
+        if c.count >= minsup:
+            L_k_set.append(c)
+    #for l in L_k_set:
+    #    print l.item_set
 
+    L_kminusone_set = L_k_set
 
+print "__________________________________________________"
+print L_k_set
+
+#for candidates in cand_list_final:
+#    print candidates.item_set , " has this count: " ,
+#    print candidates.count
+#    print "______________________________________________________"
 #print '____________________________________________________________________'
 #print cand_list_final
 #for thing in cand_list_final:
