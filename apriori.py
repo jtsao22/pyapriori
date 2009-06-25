@@ -14,11 +14,18 @@ class Transaction:
                                     #Transaction
         self.item_set = item_set
 
-    def subset(self, set_looking_for):
-        counter = 0                 # initialize counter to zero
-        print type(set_looking_for.item_set)
-        if set_looking_for.item_set.issubset(self.item_set):
-                print 'its a subset!'
+    def subset(self, transaction):
+        # check if transaction's item_set is a subset of this
+        # transaction's item_set
+        return transaction.item_set.issubset(self.item_set)
+
+
+
+
+
+
+
+
 
 ############################################################################
 #                       Parser Function                                    #
@@ -50,8 +57,6 @@ def parser():       #Used to get information and put the data into
         else:
             # if line is not newline, change the line into an integer
             # and add it to the parse_list
-
-            print type(parse_list)
             item_read = int(line)
             parse_list.add(item_read)
 
@@ -122,6 +127,7 @@ def generate(T,f_item_dict):
     cand_trans_set = set([])    # initialize the candidate transaction list
                             # that holds the candidate item sets
 
+
     for itemset_1 in f_item_dict:
         cand_item_list = set([])
         for i in f_item_dict:
@@ -139,10 +145,31 @@ def generate(T,f_item_dict):
     #                print cand_item_set
                     cand_item_list = set([])
 
-    #for num in cand_trans_set:
-    #    print num.item_set
+   # for num in cand_trans_set:
+   #     print num.item_set
 
     return cand_trans_set
+
+
+############################################################################
+#                               Subset Function                            #
+############################################################################
+ # function takes in candidate transaction list and a transaction
+
+def Subset(cand_trans_list, trans_looking_for, cand_list_final):
+
+    # Look through the trans_looking_for in the cand_trans_list
+    for transaction in cand_trans_list:
+        if trans_looking_for.subset(transaction):
+            # if its found, check if its already in the final candidate
+            # list.
+            if transaction not in cand_list_final:
+                # if its not already there, add it to the final
+                # candidate list
+                cand_list_final.add(transaction)
+    return cand_list_final
+
+
 
 ############################################################################
 #                               Main                                       #
@@ -150,12 +177,19 @@ def generate(T,f_item_dict):
 
 transaction_list =  parser()
 #print transaction_list[0].item_set
-L_kminusone_set = one_item_sets(transaction_list,2)      #
+L_kminusone_set = one_item_sets(transaction_list,3)      #
 k = 2
 cand_trans_list = []
+cand_list_final = set([])
 
 #while L_kminusone_set != {}:
 cand_trans_list = generate(transaction_list,L_kminusone_set)
 for trans in transaction_list:
-    for ctrans in cand_trans_list:
-        trans.subset(ctrans)
+    cand_list_final.union(Subset(cand_trans_list,trans,cand_list_final))
+
+
+#print '____________________________________________________________________'
+#print cand_list_final
+#for thing in cand_list_final:
+#    print 'hi'
+#    print thing.item_set
