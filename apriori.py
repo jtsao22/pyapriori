@@ -107,9 +107,35 @@ def frequency_qualifier(item_dict, minsup):
 
 
 ############################################################################
+#                           Generate Function                              #
+############################################################################
+
+def generate(T,f_item_sets):
+
+    cand_item_set = []      # initialize candidate item set
+    cand_trans_list = []    # initialize the candidate transaction list
+                            # that holds the candidate item sets
+
+    for itemset in T:
+        for itemset_1 in f_item_sets:
+            cand_item_set = itemset_1
+            for i in range(10):
+                if i not in itemset_1.item_set
+                    cand_item_set.append(i)
+                    trans = Transaction(cand_item_set)
+                    cand_trans_list.append(trans)
+                    print cand_trans_list
+                    cand_item_set = itemset_1
+
+
+
+
+############################################################################
 #                               Main                                       #
 ############################################################################
 
 transaction_list =  parser()
 #print transaction_list[0].item_set
-one_item_sets(transaction_list,2)
+item_dict = one_item_sets(transaction_list,2)
+
+generate(transaction_list,item_dict)
