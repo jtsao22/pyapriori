@@ -96,6 +96,13 @@ def one_item_sets(T, minsup):
     #for num in item_dict:
     #    print '%i %i' % (num,item_dict[num])
 
+    item_dict_with_list = {}
+    temp_list = set([])
+
+    for num in item_dict:
+        temp_list.add(num)
+        item_dict_with_list[temp_list] = item_dict[num]
+
 
     return item_dict
 
@@ -203,15 +210,3 @@ while L_kminusone_set != []:
 
     L_kminusone_set = L_k_set
 
-print "__________________________________________________"
-print L_k_set
-
-#for candidates in cand_list_final:
-#    print candidates.item_set , " has this count: " ,
-#    print candidates.count
-#    print "______________________________________________________"
-#print '____________________________________________________________________'
-#print cand_list_final
-#for thing in cand_list_final:
-#    print 'hi'
-#    print thing.item_set
