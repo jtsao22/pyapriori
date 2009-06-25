@@ -1,17 +1,25 @@
 #!/usr/bin/python
 
-# Create Transaction class.
-# Transactions are sets of items
 
 import string,sys
 
+#############################################################################
+#                           Transaction Class                               #
+#############################################################################
+
+# Transactions are sets of items
 class Transaction:
     item_set = []
     def __init__(self,item_set):
         self.item_set = item_set
+
     def subset(self, set_looking_for):
         print 'This will be implemented later'
 
+
+############################################################################
+#                       Parser Function                                    #
+############################################################################
 
 def parser():       #Used to get information and put the data into
                     # transactions
@@ -50,6 +58,10 @@ def parser():       #Used to get information and put the data into
     return transaction_list
 
 
+#############################################################################
+#                           One Item Sets Function                          #
+#############################################################################
+
 def one_item_sets(T, minsup):
 
     # initialize item dictionary to empty set
@@ -65,14 +77,39 @@ def one_item_sets(T, minsup):
             else:
                 item_dict[item] = 1
 
-    frequency_qualifier(item_dict)
+    # call frequency_qualifier to remove items whose counts are < minsup
+    item_dict = frequency_qualifier(item_dict,minsup)
+
+    #for num in item_dict:
+    #    print '%i %i' % (num,item_dict[num])
 
     return item_dict
 
 
+#############################################################################
+#                           Frequency Qualifier Function                    #
+#############################################################################
+
+def frequency_qualifier(item_dict, minsup):
+
+    # create the item dictionary with only frequent counts
+    f_item_dict = {}
 
 
+    # for each item, add the item to the frequent item dictionary if
+    # the item's count is greater than or equal to minsup
+    for item in item_dict:
+        if item_dict[item] >= minsup:
+            f_item_dict[item] = item_dict[item]
+
+    # return the item dictionary with frequent counts
+    return f_item_dict
+
+
+############################################################################
+#                               Main                                       #
+############################################################################
 
 transaction_list =  parser()
 #print transaction_list[0].item_set
-one_item_sets(transaction_list,3)
+one_item_sets(transaction_list,2)
