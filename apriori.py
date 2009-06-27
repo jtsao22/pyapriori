@@ -226,10 +226,9 @@ while L_kminusone_set != []:
 
     k += 1
 
-#print sorted(all_Lk_dict.keys())
 
-#print all_Lk_dict.keys().sort(reverse=True)
-#all_Lk_dict.keys().reverse()
+outputfile = open ('outputfile.txt', 'w')
 for k in sorted(all_Lk_dict.keys(),reverse=True):
     for i in all_Lk_dict[k]:
-        print i.item_set , " has this size: " ,k
+        outputfile.write(str(i.item_set))
+        outputfile.write('\n')
