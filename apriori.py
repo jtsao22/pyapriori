@@ -51,9 +51,9 @@ def parser():       #Used to get information and put the data into
     for line in file.readlines():
         if line == '\n':
             if parse_list != ([]):
-                # if line is newline and parse_list is empty, make a Transaction
-                # that is passed in the parse_list and put the Transactions in
-                # the transaction_list
+            #if line is newline and parse_list is empty, make a Transaction
+            # that is passed in the parse_list and put the Transactions in
+            # the transaction_list
                 trans = Transaction(parse_list)
                 transaction_list.append(trans)
                 parse_list = set([])
@@ -86,7 +86,7 @@ def one_item_sets(T, minsup):
             # Increment the counts of each number 0 to 9 by looking
             # through each item of each transaction in the
             # transaction_list T
-            temp = Transaction([item])
+            temp = Transaction(set([item]))
             item_is_present = 0
             for iter in item_list:
                 if temp.item_set == iter.item_set:
@@ -95,29 +95,10 @@ def one_item_sets(T, minsup):
             if item_is_present == 0:
                 temp.count = 1
                 item_list.append(temp)
-           # if item in trans.itemset:
-           #         trans.count += 1
-           #     else:
-           #         temp = Transaction([item])
-           #         temp.count = 1
-           #         item_list.append(trans)
 
-#    for items in item_list:
-#        print items.item_set , " happens this many times: " , items.count
 
     # call frequency_qualifier to remove items whose counts are < minsup
     item_dict = frequency_qualifier(item_list,minsup)
-
-    #for num in item_dict:
-    #    print '%i %i' % (num,item_dict[num])
-
-    #item_dict_with_list = {}
-    #temp_list = set([])
-
-    #for num in item_dict:
-    #    temp_list.add(num)
-    #    item_dict_with_list[temp_list] = item_dict[num]
-
 
     return item_dict
 
@@ -145,36 +126,47 @@ def frequency_qualifier(item_list, minsup):
 #                           Generate Function                              #
 ############################################################################
 
-def generate(f_item_list):
+def generate(f_item_list,L_1):
 
     cand_item_list = set([])      # initialize candidate item set
     cand_trans_set = set([])    # initialize the candidate transaction list
                             # that holds the candidate item sets
 
-    print "f_item_list:"
-    print f_item_list
-
-
-    for itemset_1 in f_item_list:
-        cand_item_list = set([])
-        for i in f_item_list:
+    for transaction1 in f_item_list:
+        cand_item_set = set([])
+        for transaction2 in L_1:
             # for each item or set, pair it with a item that is not the
             # item or in the set (last part implement later)
             # put them all in a list called cand_item_set and add the
             # cand_item_set to the cand_trans_list, which holds all the
             # cand_item_sets
-            if i not in itemset_1:
-                if i > itemset_1:
-                    cand_item_list.add(itemset_1)
-                    cand_item_list.add(i)
-                    trans = Transaction(cand_item_list)
-                    cand_trans_set.add(trans)
-    #                print cand_item_set
-                    cand_item_list = set([])
 
+            if transaction2.count >= minsup:
+                if not transaction2.item_set.issubset(transaction1.item_set):
+                    add_numbers_set = transaction2.item_set -\
+                            transaction1.item_set
+                    #print "trans1.item_set: " , transaction1.item_set
+                    #print "trans2.item_set: " , transaction2.item_set
+                    #print "add_numbers_list: ", add_numbers_set
+                    for num in add_numbers_set:
+                        cand_item_set = transaction1.item_set.copy()
+                        cand_item_set.add(num)
+                    #    print "cand_item_set: " ,cand_item_set
+                        trans = Transaction(cand_item_set)
+                        already_in = 0      # use already_in to say if
+                               #the transaction is already in cand_trans_set
+                        for trans_already in cand_trans_set:
+                            if trans_already.item_set == trans.item_set:
+                                already_in = 1 # set already_in to true
+                                                # if it is already in
+                                                # the set
+                        if already_in == 0:
+                             cand_trans_set.add(trans)
+                     #        print "item was added"
+                   # print '\n'
+   # print "___________________________________________"
    # for num in cand_trans_set:
    #     print num.item_set
-
     return cand_trans_set
 
 
@@ -207,20 +199,19 @@ def Subset(cand_trans_list, trans_looking_for):
 minsup = 3
 transaction_list =  parser()
 
-L_kminusone_set = one_item_sets(transaction_list,minsup)      #
-#for l in L_kminusone_set:
-#    print l.item_set ," has this count: " ,
-#    print l.count
+L_1 = one_item_sets(transaction_list,minsup)      #
+L_kminusone_set = L_1
 
-#print L_kminusone_set
+all_Lk_dict = {}
 
 k = 2
 cand_trans_list = []
 cand_list_final = set([])
 
+all_Lk_dict[1] = L_1
+
 while L_kminusone_set != []:
-    cand_trans_list = generate(L_kminusone_set)
-    print cand_trans_list
+    cand_trans_list = generate(L_kminusone_set,L_1)
     for trans in transaction_list:
         cand_list_final = Subset(cand_trans_list,trans)
         for candidates in cand_list_final:
@@ -229,9 +220,16 @@ while L_kminusone_set != []:
     for c in cand_trans_list:
         if c.count >= minsup:
             L_k_set.append(c)
-    print L_k_set
-    for l in L_k_set:
-        print l.item_set
-
+    if L_k_set != []:
+        all_Lk_dict[k] = L_k_set
     L_kminusone_set = L_k_set
 
+    k += 1
+
+#print sorted(all_Lk_dict.keys())
+
+#print all_Lk_dict.keys().sort(reverse=True)
+#all_Lk_dict.keys().reverse()
+for k in sorted(all_Lk_dict.keys(),reverse=True):
+    for i in all_Lk_dict[k]:
+        print i.item_set , " has this size: " ,k
