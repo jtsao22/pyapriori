@@ -77,8 +77,7 @@ def parser():       #Used to get information and put the data into
 
 def one_item_sets(T, minsup):
 
-    # initialize item dictionary to empty set
-    #item_dict = {}
+    # initialize item list to empty set
     item_list = []
 
     for transaction in T:
@@ -126,7 +125,7 @@ def frequency_qualifier(item_list, minsup):
 #                           Generate Function                              #
 ############################################################################
 
-def generate(f_item_list,L_1):
+def generate(f_item_list,L_1, minsup):
 
     cand_item_list = set([])      # initialize candidate item set
     cand_trans_set = set([])    # initialize the candidate transaction list
@@ -138,8 +137,7 @@ def generate(f_item_list,L_1):
             # for each item or set, pair it with a item that is not the
             # item or in the set (last part implement later)
             # put them all in a list called cand_item_set and add the
-            # cand_item_set to the cand_trans_list, which holds all the
-            # cand_item_sets
+            # cand_item_set to the cand_trans_list
 
             if transaction2.count >= minsup:
                 if not transaction2.item_set.issubset(transaction1.item_set):
@@ -162,11 +160,6 @@ def generate(f_item_list,L_1):
                                                 # the set
                         if already_in == 0:
                              cand_trans_set.add(trans)
-                     #        print "item was added"
-                   # print '\n'
-   # print "___________________________________________"
-   # for num in cand_trans_set:
-   #     print num.item_set
     return cand_trans_set
 
 
@@ -182,53 +175,73 @@ def Subset(cand_trans_list, trans_looking_for):
     # Look through the trans_looking_for in the cand_trans_list
     for transaction in cand_trans_list:
         if trans_looking_for.subset(transaction):
-            # if its found, check if its already in the final candidate
-            # list.
-           # if transaction not in cand_list_final:
-                # if its not already there, add it to the final
-                # candidate list
             cand_list_final.add(transaction)
+
     return cand_list_final
 
 
 
 ############################################################################
+#                               Apriori                                    #
+############################################################################
+
+
+def apriori(minsup):
+
+    # Get the transaction_list T using the parser function (read from
+    # file)
+    transaction_list =  parser()
+
+    # Get L_1, the large 1-itemsets that appear more than minsup
+    L_1 = one_item_sets(transaction_list,minsup)
+    L_kminusone_set = L_1
+
+    # all_Lk_dict holds all frequent itemsets with item_count mapped to
+    # the itemsets
+    all_Lk_dict = {}
+
+    # initialize k, the Candidate Transaction List, Ck, and the
+    # Final Candidate Transaction List, Ct
+    k = 2
+    cand_trans_list = []
+    cand_list_final = set([])
+
+    all_Lk_dict[1] = L_1
+
+    while L_kminusone_set != []:
+        # call generate to make the candidate transaction list
+        cand_trans_list = generate(L_kminusone_set,L_1,minsup)
+        for trans in transaction_list:i
+            # call Subset to form the final candidate transaction list
+            cand_list_final = Subset(cand_trans_list,trans)
+            for candidates in cand_list_final:
+                # increment the count for candidates in the final list
+                candidates.count += 1
+        L_k_set = []
+        # create the Lk set, which is made up of candidates from the
+        # candidate transaction list that have counts >= minsup
+        for c in cand_trans_list:
+            if c.count >= minsup:
+                L_k_set.append(c)
+        if L_k_set != []:
+            # add the set to the all_Lk_dict if its not an empty set
+            all_Lk_dict[k] = L_k_set
+
+        # increment to the next iteration
+        L_kminusone_set = L_k_set
+        k += 1
+
+    # Send the data to an output file showing each set on a line. Sets
+    # are shown from the most items to the least items
+    outputfile = open ('outputfile.txt', 'w')
+    for k in sorted(all_Lk_dict.keys(),reverse=True):
+        for i in all_Lk_dict[k]:
+            outputfile.write(str(i.item_set))
+            outputfile.write('\n')
+
+############################################################################
 #                               Main                                       #
 ############################################################################
 
-minsup = 3
-transaction_list =  parser()
-
-L_1 = one_item_sets(transaction_list,minsup)      #
-L_kminusone_set = L_1
-
-all_Lk_dict = {}
-
-k = 2
-cand_trans_list = []
-cand_list_final = set([])
-
-all_Lk_dict[1] = L_1
-
-while L_kminusone_set != []:
-    cand_trans_list = generate(L_kminusone_set,L_1)
-    for trans in transaction_list:
-        cand_list_final = Subset(cand_trans_list,trans)
-        for candidates in cand_list_final:
-            candidates.count += 1
-    L_k_set = []
-    for c in cand_trans_list:
-        if c.count >= minsup:
-            L_k_set.append(c)
-    if L_k_set != []:
-        all_Lk_dict[k] = L_k_set
-    L_kminusone_set = L_k_set
-
-    k += 1
-
-
-outputfile = open ('outputfile.txt', 'w')
-for k in sorted(all_Lk_dict.keys(),reverse=True):
-    for i in all_Lk_dict[k]:
-        outputfile.write(str(i.item_set))
-        outputfile.write('\n')
+# Call Apriori Algorithm
+apriori(3)
