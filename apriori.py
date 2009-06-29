@@ -65,8 +65,9 @@ def parser():       #Used to get information and put the data into
 
     # add the last Transaction to the transaction list (since for
     # loop exits once it sees an end of file)
-    trans = Transaction(parse_list)
-    transaction_list.append(trans)
+    if parse_list != ([]):
+        trans = Transaction(parse_list)
+        transaction_list.append(trans)
 
     return transaction_list
 
@@ -211,7 +212,7 @@ def apriori(minsup):
     while L_kminusone_set != []:
         # call generate to make the candidate transaction list
         cand_trans_list = generate(L_kminusone_set,L_1,minsup)
-        for trans in transaction_list:i
+        for trans in transaction_list:
             # call Subset to form the final candidate transaction list
             cand_list_final = Subset(cand_trans_list,trans)
             for candidates in cand_list_final:
