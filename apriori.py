@@ -49,11 +49,14 @@ def parser(w_size):       # Used to get information from file and put the data i
     iter = 0
     i = 0
 
-    for start_t in token_list[:-w_size+2]:
-        for token in token_list[i:i+w_size+1]:
-            if iter < w_size:
-                item_read = int(token)
-                parse_list.add(item_read)
+    print "token_list: ", token_list[:-w_size + 1]
+
+
+    for start_t in token_list[:-w_size + 1]:
+        for token in token_list[i:i+w_size]:
+            item_read = int(token)
+            parse_list.add(item_read)
+            if iter < w_size -1:
                 iter += 1
             else:
                 trans = Transaction(parse_list)
@@ -62,6 +65,10 @@ def parser(w_size):       # Used to get information from file and put the data i
                 iter = 0
         i += 1
 
+    #j = 1
+    #for t in transaction_list:
+    #    print j, ": " , t.item_set
+    #    j +=1
 
     # for each line in file:
     #for line in file.readlines():
