@@ -49,13 +49,12 @@ def parser(w_size):       # Used to get information from file and put the data i
     iter = 0
     i = 0
 
-    print "token_list: ", token_list[:-w_size + 1]
-
+    #print "token_list: ", token_list[:-w_size + 1]
 
     for start_t in token_list[:-w_size + 1]:
         for token in token_list[i:i+w_size]:
-            item_read = int(token)
-            parse_list.add(item_read)
+            #item_read = int(token)
+            parse_list.add(token)
             if iter < w_size -1:
                 iter += 1
             else:
@@ -64,6 +63,7 @@ def parser(w_size):       # Used to get information from file and put the data i
                 parse_list = set([])
                 iter = 0
         i += 1
+
 
     #j = 1
     #for t in transaction_list:
@@ -105,20 +105,47 @@ def one_item_sets(T, minsup): # this function gets L_1 using the
     # initialize item list to empty set
     item_list = []
 
+   # for transaction in T:
+   #     for item in transaction.item_set:
+   #         # Increment the counts of each number 0 to 9 by looking
+   #         # through each item of each transaction in the
+   #         # transaction_list T
+   #         temp = Transaction(set([item]))
+   #         item_is_present = 0
+   #         for iter in item_list:
+   #             if temp.item_set == iter.item_set:
+   #                 iter.count += 1
+   #                 item_is_present = 1
+   #         if item_is_present == 0:
+   #             temp.count = 1
+   #             item_list.append(temp)
+
+    all_transactions_set = set([])
+    all_transactions_list = []
+
     for transaction in T:
-        for item in transaction.item_set:
-            # Increment the counts of each number 0 to 9 by looking
-            # through each item of each transaction in the
-            # transaction_list T
-            temp = Transaction(set([item]))
-            item_is_present = 0
-            for iter in item_list:
-                if temp.item_set == iter.item_set:
-                    iter.count += 1
-                    item_is_present = 1
-            if item_is_present == 0:
-                temp.count = 1
-                item_list.append(temp)
+        all_transactions_set.update(transaction.item_set)
+        all_transactions_list += transaction.item_set
+
+    for item in all_transactions_set:
+        temp = Transaction(set([item]))
+        for iter in all_transactions_list:
+            if item == iter:
+               temp.count += 1
+        item_list.append(temp)
+
+
+#              i in item_list:
+#                    if temp.item_set == i.item_set:
+#                        i.count += 1
+#                        item_is_present = 1
+#                if item_is_present == 0:
+#                    temp.count = 1
+#                    item_list.append(temp)
+#
+    for i in item_list:
+        print i.item_set, " has this count: " , i.count
+
 
 
     # call frequency_qualifier to remove items whose counts are < minsup
@@ -224,6 +251,10 @@ def apriori(minsup, w_size):
     # Get L_1, the large 1-itemsets that appear more than minsup
     L_1 = one_item_sets(transaction_list,minsup)
     L_kminusone_set = L_1
+
+    #for i in L_1:
+    #    print i.item_set , " has this count: ", i.count
+
 
     # all_Lk_dict holds all frequent itemsets with item_count mapped to
     # the itemsets
