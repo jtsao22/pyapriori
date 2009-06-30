@@ -23,18 +23,11 @@ class Transaction:
         return transaction.item_set.issubset(self.item_set)
 
 
-
-
-
-
-
-
-
 ############################################################################
 #                       Parser Function                                    #
 ############################################################################
 
-def parser():       #Used to get information and put the data into
+def parser(w_size):       # Used to get information from file and put the data into
                     # transactions
 
 #Check for correct amount of parameters
@@ -47,27 +40,50 @@ def parser():       #Used to get information and put the data into
     parse_list = set([])      # create a list that parses the items
     transaction_list = []    # create a list that holds the transactions
 
-     # for each line in file:
-    for line in file.readlines():
-        if line == '\n':
-            if parse_list != ([]):
-            #if line is newline and parse_list is empty, make a Transaction
-            # that is passed in the parse_list and put the Transactions in
-            # the transaction_list
+
+    # read in the line from file
+    line = file.readline()
+
+    token_list = line.split()
+
+    iter = 0
+    i = 0
+
+    for start_t in token_list[:-w_size+2]:
+        for token in token_list[i:i+w_size+1]:
+            if iter < w_size:
+                item_read = int(token)
+                parse_list.add(item_read)
+                iter += 1
+            else:
                 trans = Transaction(parse_list)
                 transaction_list.append(trans)
                 parse_list = set([])
-        else:
-            # if line is not newline, change the line into an integer
-            # and add it to the parse_list
-            item_read = int(line)
-            parse_list.add(item_read)
+                iter = 0
+        i += 1
+
+
+    # for each line in file:
+    #for line in file.readlines():
+    #    if line == '\n':
+    #        if parse_list != ([]):
+    #        #if line is newline and parse_list is empty, make a Transaction
+    #        # that is passed in the parse_list and put the Transactions in
+    #        # the transaction_list
+    #            trans = Transaction(parse_list)
+    #            transaction_list.append(trans)
+    #            parse_list = set([])
+    #    else:
+    #        # if line is not newline, change the line into an integer
+    #        # and add it to the parse_list
+    #        item_read = int(line)
+    #        parse_list.add(item_read)
 
     # add the last Transaction to the transaction list (since for
     # loop exits once it sees an end of file)
-    if parse_list != ([]):
-        trans = Transaction(parse_list)
-        transaction_list.append(trans)
+    #if parse_list != ([]):
+    #    trans = Transaction(parse_list)
+    #    transaction_list.append(trans)
 
     return transaction_list
 
@@ -76,7 +92,8 @@ def parser():       #Used to get information and put the data into
 #                           One Item Sets Function                          #
 #############################################################################
 
-def one_item_sets(T, minsup):
+def one_item_sets(T, minsup): # this function gets L_1 using the
+                              # transaction list and minsup
 
     # initialize item list to empty set
     item_list = []
@@ -107,9 +124,10 @@ def one_item_sets(T, minsup):
 #                           Frequency Qualifier Function                    #
 #############################################################################
 
-def frequency_qualifier(item_list, minsup):
+def frequency_qualifier(item_list, minsup): # functions removes items
+                                    # whose counts are less than minsup
 
-    # create the item dictionary with only frequent counts
+    # create the item list with only frequent counts
     f_item_list = []
 
     # for each item, add the item to the frequent item dictionary if
@@ -126,7 +144,8 @@ def frequency_qualifier(item_list, minsup):
 #                           Generate Function                              #
 ############################################################################
 
-def generate(f_item_list,L_1, minsup):
+def generate(f_item_list,L_1, minsup): # used to find the candidate
+                                       # transaction set Ck
 
     cand_item_list = set([])      # initialize candidate item set
     cand_trans_set = set([])    # initialize the candidate transaction list
@@ -167,8 +186,10 @@ def generate(f_item_list,L_1, minsup):
 ############################################################################
 #                               Subset Function                            #
 ############################################################################
- # function takes in candidate transaction list and a transaction
 
+ # function takes in candidate transaction list and a transaction
+ # and returns the final candidate transaction list, which is the list with
+ # candidates found in T only
 def Subset(cand_trans_list, trans_looking_for):
 
     cand_list_final = set([])   # initialize the final candidate list
@@ -187,11 +208,11 @@ def Subset(cand_trans_list, trans_looking_for):
 ############################################################################
 
 
-def apriori(minsup):
+def apriori(minsup, w_size):
 
     # Get the transaction_list T using the parser function (read from
     # file)
-    transaction_list =  parser()
+    transaction_list =  parser(w_size)
 
     # Get L_1, the large 1-itemsets that appear more than minsup
     L_1 = one_item_sets(transaction_list,minsup)
@@ -245,4 +266,4 @@ def apriori(minsup):
 ############################################################################
 
 # Call Apriori Algorithm
-apriori(3)
+apriori(3,5)
