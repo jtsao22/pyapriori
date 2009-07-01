@@ -17,6 +17,14 @@ class Transaction:
                                     #Transaction
         self.item_set = item_set
 
+
+    def __repr__(self):
+        out_string = ""
+        out_string += str(self.item_set)
+        out_string += " "
+        out_string += str(self.count)
+        return out_string
+
     def subset(self, transaction):
         # check if transaction's item_set is a subset of this
         # transaction's item_set
@@ -27,15 +35,15 @@ class Transaction:
 #                       Parser Function                                    #
 ############################################################################
 
-def parser(w_size):       # Used to get information from file and put the data into
+def parser(w_size,file_name):       # Used to get information from file and put the data into
                     # transactions
 
 #Check for correct amount of parameters
-    if len(sys.argv)!=2:
-        print 'Usage: apriori.py [FILE]'
-        sys.exit(0)
+  #  if len(sys.argv)!=2:
+  #      print 'Usage: apriori.py [FILE]'
+  #      sys.exit(0)
 
-    file=open(sys.argv[1],'r')                  # Open the file
+    file=open(file_name,'r')                  # Open the file
 
     parse_list = set([])      # create a list that parses the items
     transaction_list = []    # create a list that holds the transactions
@@ -120,19 +128,20 @@ def one_item_sets(T, minsup): # this function gets L_1 using the
    #             temp.count = 1
    #             item_list.append(temp)
 
-    all_transactions_set = set([])
     all_transactions_list = []
 
     for transaction in T:
-        all_transactions_set.update(transaction.item_set)
+        #all_transactions_set.update(transaction.item_set)
         all_transactions_list += transaction.item_set
+
+    all_transactions_set = set(all_transactions_list)
+
 
     for item in all_transactions_set:
         temp = Transaction(set([item]))
-        for iter in all_transactions_list:
-            if item == iter:
-               temp.count += 1
+        temp.count = all_transactions_list.count(item)
         item_list.append(temp)
+
 
 
 #              i in item_list:
@@ -193,27 +202,27 @@ def generate(f_item_list,L_1, minsup): # used to find the candidate
             # put them all in a list called cand_item_set and add the
             # cand_item_set to the cand_trans_list
 
-            if transaction2.count >= minsup:
-                if not transaction2.item_set.issubset(transaction1.item_set):
-                    add_numbers_set = transaction2.item_set -\
-                            transaction1.item_set
-                    #print "trans1.item_set: " , transaction1.item_set
-                    #print "trans2.item_set: " , transaction2.item_set
-                    #print "add_numbers_list: ", add_numbers_set
-                    for num in add_numbers_set:
-                        cand_item_set = transaction1.item_set.copy()
-                        cand_item_set.add(num)
-                    #    print "cand_item_set: " ,cand_item_set
-                        trans = Transaction(cand_item_set)
-                        already_in = 0      # use already_in to say if
-                               #the transaction is already in cand_trans_set
-                        for trans_already in cand_trans_set:
-                            if trans_already.item_set == trans.item_set:
-                                already_in = 1 # set already_in to true
-                                                # if it is already in
-                                                # the set
-                        if already_in == 0:
-                             cand_trans_set.add(trans)
+            #if not transaction2.item_set.issubset(transaction1.item_set):
+            add_numbers_set = transaction2.item_set -\
+                    transaction1.item_set
+                #print "trans1.item_set: " , transaction1.item_set
+                #print "trans2.item_set: " , transaction2.item_set
+                #print "add_numbers_list: ", add_numbers_set
+            for num in add_numbers_set:
+                cand_item_set = transaction1.item_set.copy()
+                cand_item_set.add(num)
+           #    print "cand_item_set: " ,cand_item_set
+                trans = Transaction(cand_item_set)
+                already_in = 0      # use already_in to say if
+                       #the transaction is already in cand_trans_set
+                for trans_already in cand_trans_set:
+                    if trans_already.item_set == trans.item_set:
+                        already_in = 1 # set already_in to true
+                                            # if it is already in
+                                            # the set
+                        break
+                if already_in == 0:
+                     cand_trans_set.add(trans)
     return cand_trans_set
 
 
@@ -226,12 +235,16 @@ def generate(f_item_list,L_1, minsup): # used to find the candidate
  # candidates found in T only
 def Subset(cand_trans_list, trans_looking_for):
 
-    cand_list_final = set([])   # initialize the final candidate list
+    cand_list_final =[]   # initialize the final candidate list
                                # (with candidates found in T only)
     # Look through the trans_looking_for in the cand_trans_list
+    #for transaction in cand_trans_list:
+    #    if trans_looking_for.subset(transaction):
+    #        cand_list_final.append(transaction)
+
     for transaction in cand_trans_list:
-        if trans_looking_for.subset(transaction):
-            cand_list_final.add(transaction)
+        if transaction.item_set.issubset(trans_looking_for.item_set):
+            cand_list_final.append(transaction)
 
     return cand_list_final
 
@@ -242,11 +255,11 @@ def Subset(cand_trans_list, trans_looking_for):
 ############################################################################
 
 
-def apriori(minsup, w_size):
+def apriori(minsup, w_size,file):
 
     # Get the transaction_list T using the parser function (read from
     # file)
-    transaction_list =  parser(w_size)
+    transaction_list =  parser(w_size,file)
 
     # Get L_1, the large 1-itemsets that appear more than minsup
     L_1 = one_item_sets(transaction_list,minsup)
@@ -271,6 +284,9 @@ def apriori(minsup, w_size):
     while L_kminusone_set != []:
         # call generate to make the candidate transaction list
         cand_trans_list = generate(L_kminusone_set,L_1,minsup)
+        print "length of cand_trans_list: ", len(cand_trans_list)
+        #print "list: ", cand_trans_list
+
         for trans in transaction_list:
             # call Subset to form the final candidate transaction list
             cand_list_final = Subset(cand_trans_list,trans)
@@ -304,4 +320,5 @@ def apriori(minsup, w_size):
 ############################################################################
 
 # Call Apriori Algorithm
-apriori(3,5)
+if __name__ == '__main__':
+    apriori(100,5,sys.argv[1])
