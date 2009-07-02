@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-
+import getopt
 import string,sys
 
 #############################################################################
@@ -35,7 +35,7 @@ class Transaction:
 #                       Parser Function                                    #
 ############################################################################
 
-def parser(w_size,file_name):       # Used to get information from file and put the data into
+def parser(w_size,file_name,d_wind):   # Used to get information from file and put the data into
                     # transactions
 
 #Check for correct amount of parameters
@@ -57,22 +57,33 @@ def parser(w_size,file_name):       # Used to get information from file and put 
     iter = 0
     i = 0
 
-    #print "token_list: ", token_list[:-w_size + 1]
-
-    for start_t in token_list[:-w_size + 1]:
-        for token in token_list[i:i+w_size]:
-            #item_read = int(token)
-            parse_list.add(token)
-            if iter < w_size -1:
-                iter += 1
-            else:
-                trans = Transaction(parse_list)
-                transaction_list.append(trans)
-                parse_list = set([])
-                iter = 0
-        i += 1
-
-
+    if d_wind == 0:
+        for start_t in token_list[:-w_size + 1]:
+            for token in token_list[i:i+w_size]:
+                parse_list.add(token)
+                if iter < w_size -1:
+                    iter += 1
+                else:
+                    trans = Transaction(parse_list)
+                    transaction_list.append(trans)
+                    parse_list = set([])
+                    iter = 0
+            i += 1
+    else:
+    #    counter = 0
+    #    parse_list = set([])
+    #    for token in token_list[:-w_size + 1]:
+    #        parse_list.add(token)
+    #        if(counter >= d_wind):
+    #            trans = Transaction(parse_list)
+    #            transaction_list.append(trans)
+    #            parse_list = set([])
+    #            counter = 0
+    #        else:
+    #            counter += 1
+        token_set = set(token_list)
+        for token in token_set:
+            transaction_list += dyn_search_window(token,token_list)
     #j = 1
     #for t in transaction_list:
     #    print j, ": " , t.item_set
@@ -102,7 +113,37 @@ def parser(w_size,file_name):       # Used to get information from file and put 
 
     return transaction_list
 
+#############################################################################
+#                        Dynamic Search Window Function                     #
+#############################################################################
 
+def dyn_search_window(item,token_list):
+    transaction_list = []
+    parse_list = set([])
+
+    counter = 0
+    # parse through token_list until the item is encountered
+    for iter in token_list:
+        if iter == item:
+            counter += 1
+            parse_list.add(item)
+            break
+        counter += 1
+    # go through rest of list and add a transaction everytime the item
+    # is repeated
+    for iter in token_list[counter:]:
+        parse_list.add(iter)
+        if iter == item:
+            trans = Transaction(parse_list)
+            transaction_list.append(trans)
+            parse_list = set([item])
+
+    # add last transaction if token_list didn't have an ending token
+    # corresponding to item
+    if parse_list != set([]):
+        trans = Transaction(parse_list)
+        transaction_list.append(trans)
+    return transaction_list
 #############################################################################
 #                           One Item Sets Function                          #
 #############################################################################
@@ -152,8 +193,8 @@ def one_item_sets(T, minsup): # this function gets L_1 using the
 #                    temp.count = 1
 #                    item_list.append(temp)
 #
-    for i in item_list:
-        print i.item_set, " has this count: " , i.count
+#    for i in item_list:
+#        print i.item_set, " has this count: " , i.count
 
 
 
@@ -255,11 +296,14 @@ def Subset(cand_trans_list, trans_looking_for):
 ############################################################################
 
 
-def apriori(minsup, w_size,file):
+def apriori(minsup, w_size,file, d_window):
 
+    # minsup is the minimum frequency support, w_size is the window
+    # size, file is the file taken in as input, d_window specifies if
+    # the dynamic windowing option should be used or not
     # Get the transaction_list T using the parser function (read from
     # file)
-    transaction_list =  parser(w_size,file)
+    transaction_list =  parser(w_size,file,d_window)
 
     # Get L_1, the large 1-itemsets that appear more than minsup
     L_1 = one_item_sets(transaction_list,minsup)
@@ -321,4 +365,20 @@ def apriori(minsup, w_size,file):
 
 # Call Apriori Algorithm
 if __name__ == '__main__':
-    apriori(100,5,sys.argv[1])
+
+    try:
+        opts,args = getopt.getopt(sys.argv[2:], "d")
+    except getopt.GetoptError, err:
+        print str(err)
+        sys.exit(2)
+
+    dynamic_window = 0
+    for o,a in opts:
+        if o == "-d":
+            dynamic_window = 1
+        else:
+            print "Unhandled option"
+
+    apriori(3,5,sys.argv[1],dynamic_window)
+
+
