@@ -35,8 +35,8 @@ class Transaction:
 #                       Parser Function                                    #
 ############################################################################
 
-def parser(w_size,file_name,d_wind):   # Used to get information from file and put the data into
-                    # transactions
+def parser(w_size,file_name,d_wind):   # Used to get information from file
+                                        #and put the data into transactions
 
 #Check for correct amount of parameters
   #  if len(sys.argv)!=2:
@@ -45,7 +45,6 @@ def parser(w_size,file_name,d_wind):   # Used to get information from file and p
 
     file=open(file_name,'r')                  # Open the file
 
-    parse_list = set([])      # create a list that parses the items
     transaction_list = []    # create a list that holds the transactions
 
 
@@ -53,6 +52,7 @@ def parser(w_size,file_name,d_wind):   # Used to get information from file and p
     line = file.readline()
 
     token_list = line.split()
+    parse_list = set([])      # create a list that parses the items
 
     iter = 0
     i = 0
@@ -81,9 +81,36 @@ def parser(w_size,file_name,d_wind):   # Used to get information from file and p
     #            counter = 0
     #        else:
     #            counter += 1
-        token_set = set(token_list)
-        for token in token_set:
-            transaction_list += dyn_search_window(token,token_list)
+        #token_set = set(token_list)
+        #for token in token_set:
+        #    transaction_list += dyn_search_window(token,token_list)
+
+        for index,start_t in enumerate(token_list):
+            for ind, token in enumerate(token_list[index:]):
+                if token == start_t and ind != 0:
+                    trans = Transaction(parse_list)
+                    transaction_list.append(trans)
+                    parse_list = set([])
+                    break
+                else:
+                    parse_list.add(token)
+            if parse_list != set([]) or token != start_t:
+                trans = Transaction(parse_list)
+                transaction_list.append(trans)
+                parse_list = set([])
+
+    total_window_size = 0
+    max_window_size = 0
+    for trans in transaction_list:
+        total_window_size += len(trans.item_set)
+        if max_window_size < len(trans.item_set):
+            max_window_size = len(trans.item_set)
+    print "average window size: ",
+    print total_window_size/len(transaction_list)
+
+    print "max window size: ",
+    print max_window_size
+
     #j = 1
     #for t in transaction_list:
     #    print j, ": " , t.item_set
@@ -356,7 +383,9 @@ def apriori(minsup, w_size,file, d_window):
     outputfile = open ('outputfile.txt', 'w')
     for k in sorted(all_Lk_dict.keys(),reverse=True):
         for i in all_Lk_dict[k]:
-            outputfile.write(str(i.item_set))
+            output_string = str(i.item_set) + "\n occurs this many times: "\
+                    + str(i.count)
+            outputfile.write(output_string)
             outputfile.write('\n')
 
 ############################################################################
