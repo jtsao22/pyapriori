@@ -9,14 +9,11 @@ import string,sys
 
 # Transactions are sets of items
 class Transaction:
-    item_set = set([])              # used to hold the set of items
-
-    count = 0                       # initialize its count to zero
 
     def __init__(self,item_set):    # function to initialize a
                                     #Transaction
         self.item_set = item_set
-
+        self.count = 0                       # initialize its count to zero
 
     def __repr__(self):
         out_string = ""
