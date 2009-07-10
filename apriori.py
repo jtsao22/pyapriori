@@ -2,6 +2,7 @@
 
 import getopt
 import string,sys
+import hash_tree
 
 #############################################################################
 #                           Transaction Class                               #
@@ -205,6 +206,7 @@ def one_item_sets(T, minsup): # this function gets L_1 using the
     for item in all_transactions_set:
         temp = Transaction(set([item]))
         temp.count = all_transactions_list.count(item)
+
         item_list.append(temp)
 
 
@@ -252,10 +254,9 @@ def frequency_qualifier(item_list, minsup): # functions removes items
 #                           Generate Function                              #
 ############################################################################
 
-def generate(f_item_list,L_1, minsup): # used to find the candidate
+def generate(f_item_list,L_1, minsup,ht): # used to find the candidate
                                        # transaction set Ck
 
-    cand_item_list = set([])      # initialize candidate item set
     cand_trans_set = set([])    # initialize the candidate transaction list
                             # that holds the candidate item sets
 
@@ -276,7 +277,6 @@ def generate(f_item_list,L_1, minsup): # used to find the candidate
             for num in add_numbers_set:
                 cand_item_set = transaction1.item_set.copy()
                 cand_item_set.add(num)
-           #    print "cand_item_set: " ,cand_item_set
                 trans = Transaction(cand_item_set)
                 already_in = 0      # use already_in to say if
                        #the transaction is already in cand_trans_set
@@ -287,7 +287,13 @@ def generate(f_item_list,L_1, minsup): # used to find the candidate
                                             # the set
                         break
                 if already_in == 0:
-                     cand_trans_set.add(trans)
+                    cand_trans_set.add(trans)
+                    print "cand_item_set: ", cand_item_set
+                    ht.add_trans(trans)
+
+    #print "ht.prints: ", ht.prints()
+    #print "cand_trans_set: ", cand_trans_set
+
     return cand_trans_set
 
 
@@ -320,7 +326,7 @@ def Subset(cand_trans_list, trans_looking_for):
 ############################################################################
 
 
-def apriori(minsup, w_size,file, d_window):
+def apriori(minsup, w_size,file, d_window,node_threshold):
 
     # minsup is the minimum frequency support, w_size is the window
     # size, file is the file taken in as input, d_window specifies if
@@ -347,32 +353,59 @@ def apriori(minsup, w_size,file, d_window):
     cand_trans_list = []
     cand_list_final = set([])
 
+    ht = hash_tree.Hash_tree(node_threshold)
+
     all_Lk_dict[1] = L_1
 
     while L_kminusone_set != []:
         # call generate to make the candidate transaction list
-        cand_trans_list = generate(L_kminusone_set,L_1,minsup)
+
+        ht.reinitialize()
+        #ht = hash_tree.Hash_tree(node_threshold)
+        cand_trans_list = generate(L_kminusone_set,L_1,minsup,ht)
         print "length of cand_trans_list: ", len(cand_trans_list)
         #print "list: ", cand_trans_list
 
+        #print "ht.prints(): ", ht.prints()
         for trans in transaction_list:
             # call Subset to form the final candidate transaction list
-            cand_list_final = Subset(cand_trans_list,trans)
-            for candidates in cand_list_final:
+            #cand_list_final = Subset(cand_trans_list,trans)
+ #           ht.reinitialize()
+ #           print "trans: " ,trans
+            ht.cand_list_final = []
+            ht.subset(trans)
+     #      cand_list_final = ht.cand_list_final
+#            print "cand_list_final: " , ht.cand_list_final
+            for candidates in ht.cand_list_final:
                 # increment the count for candidates in the final list
+                print "candidate ", candidates, " incremented"
                 candidates.count += 1
-        L_k_set = []
+            print "_______________________________next iteration_"
+
+        ht.L_k_set = []
         # create the Lk set, which is made up of candidates from the
         # candidate transaction list that have counts >= minsup
-        for c in cand_trans_list:
-            if c.count >= minsup:
-                L_k_set.append(c)
+        #for c in cand_trans_list:
+        #    print "c in cand_trans_list: ", c
+        #    if c.count >= minsup:
+        #        L_k_set.append(c)
+
+        ht.check_minsup(ht.root,minsup)
+        L_k_set = ht.L_k_set
         if L_k_set != []:
             # add the set to the all_Lk_dict if its not an empty set
             all_Lk_dict[k] = L_k_set
 
         # increment to the next iteration
+
+        print "_______________________________________________________"
+        print "_______________________________________________________"
+        print "___________________________________eeeee_______________"
         L_kminusone_set = L_k_set
+        print "length of L_kminusone_set: ", len(L_kminusone_set)
+        print "L_kminusone_set: " , L_kminusone_set
+        print "length of cand_list_final: ", len(ht.cand_list_final)
+        print "cand_list_Final: ", ht.cand_list_final
         k += 1
 
     # Send the data to an output file showing each set on a line. Sets
@@ -380,8 +413,8 @@ def apriori(minsup, w_size,file, d_window):
     outputfile = open ('outputfile.txt', 'w')
     for k in sorted(all_Lk_dict.keys(),reverse=True):
         for i in all_Lk_dict[k]:
-            output_string = str(i.item_set) + "\n occurs this many times: "\
-                    + str(i.count)
+            output_string = str(i.item_set) + "\n occurs\
+                    this many times: " + str(i.count)
             outputfile.write(output_string)
             outputfile.write('\n')
 
@@ -405,6 +438,6 @@ if __name__ == '__main__':
         else:
             print "Unhandled option"
 
-    apriori(3,5,sys.argv[1],dynamic_window)
+    apriori(3,5,sys.argv[1],dynamic_window,3)
 
 
