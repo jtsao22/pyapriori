@@ -135,7 +135,7 @@ def parser(w_size,file_name,d_wind):   # Used to get information from file
     #if parse_list != ([]):
     #    trans = Transaction(parse_list)
     #    transaction_list.append(trans)
-
+    print "transaction_list: ", transaction_list
     return transaction_list
 
 #############################################################################
@@ -288,7 +288,6 @@ def generate(f_item_list,L_1, minsup,ht): # used to find the candidate
                         break
                 if already_in == 0:
                     cand_trans_set.add(trans)
-                    print "cand_item_set: ", cand_item_set
                     ht.add_trans(trans)
 
     #print "ht.prints: ", ht.prints()
@@ -365,8 +364,11 @@ def apriori(minsup, w_size,file, d_window,node_threshold):
         cand_trans_list = generate(L_kminusone_set,L_1,minsup,ht)
         print "length of cand_trans_list: ", len(cand_trans_list)
         #print "list: ", cand_trans_list
-
         #print "ht.prints(): ", ht.prints()
+
+        print "cand_trans_list: ", cand_trans_list
+        print "ht.prints(): ", ht.prints()
+
         for trans in transaction_list:
             # call Subset to form the final candidate transaction list
             #cand_list_final = Subset(cand_trans_list,trans)
@@ -375,12 +377,14 @@ def apriori(minsup, w_size,file, d_window,node_threshold):
             ht.cand_list_final = []
             ht.subset(trans)
      #      cand_list_final = ht.cand_list_final
-#            print "cand_list_final: " , ht.cand_list_final
+            print "trans: ", trans
+            print "cand_list_final: " , ht.cand_list_final
+            print "length of cand_list_final: ", len(ht.cand_list_final)
+
             for candidates in ht.cand_list_final:
                 # increment the count for candidates in the final list
-                print "candidate ", candidates, " incremented"
                 candidates.count += 1
-            print "_______________________________next iteration_"
+
 
         ht.L_k_set = []
         # create the Lk set, which is made up of candidates from the
@@ -391,29 +395,31 @@ def apriori(minsup, w_size,file, d_window,node_threshold):
         #        L_k_set.append(c)
 
         ht.check_minsup(ht.root,minsup)
-        L_k_set = ht.L_k_set
-        if L_k_set != []:
+        #L_k_set = ht.L_k_set
+
+        print "L_k_set: ", ht.L_k_set
+        if ht.L_k_set != []:
             # add the set to the all_Lk_dict if its not an empty set
-            all_Lk_dict[k] = L_k_set
+            all_Lk_dict[k] = ht.L_k_set
 
         # increment to the next iteration
 
-        print "_______________________________________________________"
-        print "_______________________________________________________"
-        print "___________________________________eeeee_______________"
-        L_kminusone_set = L_k_set
+        L_kminusone_set = ht.L_k_set
         print "length of L_kminusone_set: ", len(L_kminusone_set)
         print "L_kminusone_set: " , L_kminusone_set
         print "length of cand_list_final: ", len(ht.cand_list_final)
         print "cand_list_Final: ", ht.cand_list_final
         k += 1
+        print "___________________new iteration_________________________"
+
+
 
     # Send the data to an output file showing each set on a line. Sets
     # are shown from the most items to the least items
     outputfile = open ('outputfile.txt', 'w')
     for k in sorted(all_Lk_dict.keys(),reverse=True):
         for i in all_Lk_dict[k]:
-            output_string = str(i.item_set) + "\n occurs\
+            output_string = str(sorted(i.item_set)) + "\n occurs\
                     this many times: " + str(i.count)
             outputfile.write(output_string)
             outputfile.write('\n')
