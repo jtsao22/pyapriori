@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!usr/bin/python
 
 import getopt
 import string,sys
@@ -34,11 +34,6 @@ class Transaction:
 
 def parser(w_size,file_name,d_wind):   # Used to get information from file
                                         #and put the data into transactions
-
-#Check for correct amount of parameters
-  #  if len(sys.argv)!=2:
-  #      print 'Usage: apriori.py [FILE]'
-  #      sys.exit(0)
 
     file=open(file_name,'r')                  # Open the file
 
@@ -107,33 +102,6 @@ def parser(w_size,file_name,d_wind):   # Used to get information from file
 
     print "max window size: ",
     print max_window_size
-
-    #j = 1
-    #for t in transaction_list:
-    #    print j, ": " , t.item_set
-    #    j +=1
-
-    # for each line in file:
-    #for line in file.readlines():
-    #    if line == '\n':
-    #        if parse_list != ([]):
-    #        #if line is newline and parse_list is empty, make a Transaction
-    #        # that is passed in the parse_list and put the Transactions in
-    #        # the transaction_list
-    #            trans = Transaction(parse_list)
-    #            transaction_list.append(trans)
-    #            parse_list = set([])
-    #    else:
-    #        # if line is not newline, change the line into an integer
-    #        # and add it to the parse_list
-    #        item_read = int(line)
-    #        parse_list.add(item_read)
-
-    # add the last Transaction to the transaction list (since for
-    # loop exits once it sees an end of file)
-    #if parse_list != ([]):
-    #    trans = Transaction(parse_list)
-    #    transaction_list.append(trans)
 
     return transaction_list
 
@@ -208,20 +176,6 @@ def one_item_sets(T, minsup): # this function gets L_1 using the
         item_list.append(temp)
 
 
-
-#              i in item_list:
-#                    if temp.item_set == i.item_set:
-#                        i.count += 1
-#                        item_is_present = 1
-#                if item_is_present == 0:
-#                    temp.count = 1
-#                    item_list.append(temp)
-#
-#    for i in item_list:
-#        print i.item_set, " has this count: " , i.count
-
-
-
     # call frequency_qualifier to remove items whose counts are < minsup
     item_dict = frequency_qualifier(item_list,minsup)
 
@@ -269,13 +223,9 @@ def generate(f_item_list,L_1, minsup): # used to find the candidate
             #if not transaction2.item_set.issubset(transaction1.item_set):
             add_numbers_set = transaction2.item_set -\
                     transaction1.item_set
-                #print "trans1.item_set: " , transaction1.item_set
-                #print "trans2.item_set: " , transaction2.item_set
-                #print "add_numbers_list: ", add_numbers_set
             for num in add_numbers_set:
                 cand_item_set = transaction1.item_set.copy()
                 cand_item_set.add(num)
-           #    print "cand_item_set: " ,cand_item_set
                 trans = Transaction(cand_item_set)
                 already_in = 0      # use already_in to say if
                        #the transaction is already in cand_trans_set
@@ -312,8 +262,6 @@ def Subset(cand_trans_list, trans_looking_for):
     for transaction in cand_trans_list:
         if transaction.item_set.issubset(trans_looking_for.item_set):
             cand_list_final.append(transaction)
-            if transaction.item_set == set(['1','3','5']):
-                print "transaction when set is 135: ",trans_looking_for
     return cand_list_final
 
 
@@ -336,9 +284,6 @@ def apriori(minsup, w_size,file, d_window):
     L_1 = one_item_sets(transaction_list,minsup)
     L_kminusone_set = L_1
 
-    #for i in L_1:
-    #    print i.item_set , " has this count: ", i.count
-
 
     # all_Lk_dict holds all frequent itemsets with item_count mapped to
     # the itemsets
@@ -355,25 +300,17 @@ def apriori(minsup, w_size,file, d_window):
     while L_kminusone_set != []:
         # call generate to make the candidate transaction list
         cand_trans_list = generate(L_kminusone_set,L_1,minsup)
-        print "length of cand_trans_list: ", len(cand_trans_list)
- #       print "cand_trans_list: ", cand_trans_list
-
         for trans in transaction_list:
             # call Subset to form the final candidate transaction list
-   #         print "trans: " , trans
             cand_list_final = Subset(cand_trans_list,trans)
             for candidates in cand_list_final:
                 # increment the count for candidates in the final list
                 candidates.count += 1
-   #         print "cand list final: ", cand_list_final
-
         L_k_set = []
         # create the Lk set, which is made up of candidates from the
         # candidate transaction list that have counts >= minsup
+
         for c in cand_trans_list:
-
-            print "c in cand_trans_list: ",c
-
             if c.count >= minsup:
                 L_k_set.append(c)
         if L_k_set != []:
@@ -382,18 +319,13 @@ def apriori(minsup, w_size,file, d_window):
 
         # increment to the next iteration
         L_kminusone_set = L_k_set
-        print "length of L_kminusone_set: ", len(L_kminusone_set)
-        print "L_kminusone_set: ", L_kminusone_set
-        print "length of cand_list_final: ", len(cand_list_final)
-        print "cand_list_final: ", cand_list_final
         k += 1
-
     # Send the data to an output file showing each set on a line. Sets
     # are shown from the most items to the least items
     outputfile = open ('outputfile1.txt', 'w')
     for k in sorted(all_Lk_dict.keys(),reverse=True):
         for i in all_Lk_dict[k]:
-            output_string = str(i.item_set) + "\n occurs this many times: "\
+            output_string = str(sorted(i.item_set)) + "\n occurs this many times: "\
                     + str(i.count)
             outputfile.write(output_string)
             outputfile.write('\n')
