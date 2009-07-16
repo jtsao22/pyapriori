@@ -14,11 +14,17 @@ class Transaction:
     def __init__(self,item_set):    # function to initialize a
                                     #Transaction
         self.item_set = item_set
-        self.count = 0                       # initialize its count to zero
+        self.item_list = list(sorted(item_set))
+        self.count = 0                      # initialize its count to zero
+
+    def __cmp__(self, other):
+        return cmp(self.item_list,other.item_list)
+
+
 
     def __repr__(self):
         out_string = ""
-        out_string += str(self.item_set)
+        out_string += str(self.item_list)
         out_string += " "
         out_string += str(self.count)
         return out_string
@@ -40,6 +46,10 @@ def parser(w_size,file_name,d_wind):   # Used to get information from file
 
     transaction_list = []    # create a list that holds the transactions
 
+
+    # create a list that has parse_lists as its elements
+    list_of_parses = []
+
     # read in the line from file
     line = file.readline()
 
@@ -60,8 +70,7 @@ def parser(w_size,file_name,d_wind):   # Used to get information from file
                 if iter < w_size -1:
                     iter += 1
                 else:
-                    trans = Transaction(parse_list)
-                    transaction_list.append(trans)
+                    list_of_parses.append(sorted(list(parse_list)))
                     parse_list = set([])
                     iter = 0
             i += 1
@@ -69,8 +78,6 @@ def parser(w_size,file_name,d_wind):   # Used to get information from file
         for index,start_t in enumerate(token_list):
             for ind, token in enumerate(token_list[index:]):
                 if token == start_t and ind != 0:
-                    trans = Transaction(parse_list)
-                    transaction_list.append(trans)
                     parse_list = set([])
                     break
                 else:
@@ -78,26 +85,28 @@ def parser(w_size,file_name,d_wind):   # Used to get information from file
                     hash_dict[hash(token)] = token
 
             if parse_list != set([]) or token != start_t:
-                trans = Transaction(parse_list)
-                transaction_list.append(trans)
                 parse_list = set([])
+
+    list_of_parses.sort()
 
     total_window_size = 0
     max_window_size = 0
-    for trans in transaction_list:
-        total_window_size += len(trans.item_set)
-        if max_window_size < len(trans.item_set):
-            max_window_size = len(trans.item_set)
+
+    for parse_list in list_of_parses:
+        total_window_size += len(parse_list)
+        if max_window_size < len(parse_list):
+            max_window_size = len(parse_list)
+        trans = Transaction(parse_list)
+        transaction_list.append(trans)
+
     print "average_window_size: "
     print total_window_size/len(transaction_list)
 
     print "max window size: "
-    print  max_window_size
+    print max_window_size
 
 
-
-
-    return transaction_list
+    return transaction_list,hash_dict
 
 #############################################################################
 #                        Dynamic Search Window Function                     #
@@ -152,7 +161,7 @@ def one_item_sets(T, minsup): # this function gets L_1 using the
 
 
     for item in all_transactions_set:
-        temp = Transaction(set([item]))
+        temp = Transaction([item])
         temp.count = all_transactions_list.count(item)
 
         item_list.append(temp)
@@ -188,23 +197,47 @@ def frequency_qualifier(item_list, minsup): # functions removes items
 #                           Generate Function                              #
 ############################################################################
 
-def generate(f_item_list,L_1, minsup,ht): # used to find the candidate
+def generate(f_item_list,minsup,ht): # used to find the candidate
                                        # transaction set Ck
 
+    f_item_list.sort()
+    debuga("f_item_list: " + str(f_item_list))
+    assert(check_item_last(Transaction(set([1,3,4])),Transaction(set([1,2,3])))==[])
+    assert(check_item_last(Transaction(set([1,2,3])),Transaction(set([1,2,4])))==
+            [1,2,3,4])
+
+    # Join Step of Generate function
     cand_trans_list = []    # initialize the candidate transaction list
                             # that holds the candidate item lists
 
+    index = 1
 
-    for transaction in f_item_list:
-        cand_trans_list.append(list(sorted(transaction.item_set)))
+    for trans1 in f_item_list:
+        for trans2 in f_item_list[index:]:
+            check = check_item_last(trans1,trans2)
+            if check != []:
+                cand_trans_list.append(check)
+        index += 1
+
+
+    debuga("cand_trans_list: " + str(cand_trans_list))
+
+    # Prune Step of Generate function
+
+    cand_trans_final = []
+    temp_set = []
+
+    for item_list in cand_trans_list:
+        get_subsets_of(item_list,len(item_list)-1,cand_trans_final)
+
+
+    debuga("cand_trans_final: " + str(cand_trans_final))
 
 
 
 
-    print cand_trans_list
 
     exit(0)
-
 
         # for each item or set, pair it with a item that is not the
             # item or in the set (last part implement later)
@@ -220,29 +253,69 @@ def generate(f_item_list,L_1, minsup,ht): # used to find the candidate
 
     return cand_trans_set
 
+############################################################################
+#                              Get subsets of Function                     #
+############################################################################
+
+def get_subsets_of(item_list,size,return_list):
+    #    for item in get_subset_recursive(len(item_list),size):
+    #    return_list.append(list(item_list[i] for i in item))
+    #    yield list(item[i] for i in item)
+    #
+    if len(item_list) == 2:
+        [return_list.append(
+
+
+
+
+def get_subset_recursive(n,size):
+    j = 1
+
+
+    print item_list
+    for item1 in item_list:
+        for item2 in item_list[j:]:
+            new_list = item1[:]
+            new_list.extend(item2)
+            print item1
+            print item2
+            assert(new_list != item1)
+            if(len(new_list)== size):
+                return_list.append(new_list)
+            get_subsets_of(new_list,size,return_list)
+
+#
+#    if size == 0 or n < size:
+#        yield set()
+#
+#    for item in get_subset_recursive(n-1,size-1):
+#        item.append(n-1)
+#        yield item
+#    for item in get_subset_recursive(n-1,size):
+#        return_list.append(item)
+#        yield item
+#
 
 ############################################################################
-#                               Subset Function                            #
+#                               Check item last                            #
 ############################################################################
 
- # function takes in candidate transaction list and a transaction
- # and returns the final candidate transaction list, which is the list with
- # candidates found in T only
-def Subset(cand_trans_list, trans_looking_for):
+# This function checks if all the items in transaction 1 are the same as
+# transaction 2 except for the last element of both
 
-    cand_list_final =[]   # initialize the final candidate list
-                               # (with candidates found in T only)
-    # Look through the trans_looking_for in the cand_trans_list
-    #for transaction in cand_trans_list:
-    #    if trans_looking_for.subset(transaction):
-    #        cand_list_final.append(transaction)
 
-    for transaction in cand_trans_list:
-        if transaction.item_set.issubset(trans_looking_for.item_set):
-            cand_list_final.append(transaction)
+def check_item_last(trans1, trans2):
+    if trans1 != trans2:
+        for index in range(len(trans1.item_list)):
+            if trans1.item_list[index] != trans2.item_list[index]\
+                    and index != len(trans1.item_list)-1:
+                return []
 
-    return cand_list_final
-
+        temp_list = trans1.item_list[:]
+        temp_list.append(trans2.item_list[len(trans2.item_list) -1])
+        return temp_list
+    else:
+        return []
 
 
 ############################################################################
@@ -257,7 +330,7 @@ def apriori(minsup, w_size,file, d_window,node_threshold):
     # the dynamic windowing option should be used or not
     # Get the transaction_list T using the parser function (read from
     # file)
-    transaction_list =  parser(w_size,file,d_window)
+    transaction_list,hash_dict =  parser(w_size,file,d_window)
 
     # Get L_1, the large 1-itemsets that appear more than minsup
     L_1 = one_item_sets(transaction_list,minsup)
@@ -281,7 +354,7 @@ def apriori(minsup, w_size,file, d_window,node_threshold):
         # call generate to make the candidate transaction list
 
         ht.reinitialize()
-        cand_trans_list = generate(L_kminusone_set,L_1,minsup,ht)
+        cand_trans_list = generate(L_kminusone_set,minsup,ht)
 
 
         for trans in transaction_list:
@@ -307,8 +380,6 @@ def apriori(minsup, w_size,file, d_window,node_threshold):
         ht.check_minsup(ht.root,minsup)
         #L_k_set = ht.L_k_set
 
-        debuga("L_k_set: ")
-        debuga(ht.L_k_set)
         if ht.L_k_set != []:
             # add the set to the all_Lk_dict if its not an empty set
             all_Lk_dict[k] = ht.L_k_set
@@ -316,12 +387,7 @@ def apriori(minsup, w_size,file, d_window,node_threshold):
         # increment to the next iteration
 
         L_kminusone_set = ht.L_k_set
-        debuga("length of L_kminusone_set: " +
-                str(len(L_kminusone_set)))
-        debuga("L_kminusone_set: " + str(L_kminusone_set))
-        debuga("cand_list_Final: " + str(ht.cand_list_final))
         k += 1
-        debuga("___________________new iteration_____________")
 
 
 
@@ -331,7 +397,10 @@ def apriori(minsup, w_size,file, d_window,node_threshold):
     outputfile = open ('outputfile.txt', 'w')
     for k in sorted(all_Lk_dict.keys(),reverse=True):
         for i in all_Lk_dict[k]:
-            output_string = str(sorted(i.item_set)) + "\n occurs\
+            temp_list = []
+            for item in sorted(i.item_set):
+                temp_list.append(hash_dict[item])
+            output_string = str(temp_list) + "\n occurs\
                     this many times: " + str(i.count)
             outputfile.write(output_string)
             outputfile.write('\n')
@@ -341,7 +410,7 @@ def apriori(minsup, w_size,file, d_window,node_threshold):
 ###########################################################################
 
 def debuga(data):
-    if False:
+    if True:
 #        sys.stderr.write(str(data))
 #        sys.stderr.write('\n')
         print data
