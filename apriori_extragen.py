@@ -223,78 +223,66 @@ def generate(f_item_list,minsup,ht): # used to find the candidate
     debuga("cand_trans_list: " + str(cand_trans_list))
 
     # Prune Step of Generate function
+    subsets = []
 
-    cand_trans_final = []
-    temp_set = []
+    # Removed list keeps track of the item lists that were already
+    # removed
+    removed_list = []
+    checked_sets = []
 
     for item_list in cand_trans_list:
-        get_subsets_of(item_list,len(item_list)-1,cand_trans_final)
-
-
-    debuga("cand_trans_final: " + str(cand_trans_final))
-
-
-
-
-
-    exit(0)
-
-        # for each item or set, pair it with a item that is not the
-            # item or in the set (last part implement later)
-            # put them all in a list called cand_item_set and add the
-            # cand_item_set to the cand_trans_list
-
-    # Prune step to delete all itemsets with subsets not in L(k-1)
+        temp_list = []
+        subsets = []
+        debuga("item_list: " + str(item_list))
+        get_subsets_of(item_list,temp_list,subsets)
 
 
 
-    ht.add_trans(trans)
+        debuga("subsets: " + str(subsets))
+        for iter in subsets:
+            if iter not in checked_sets:
+                checked_sets.append(iter)
+                inside = 0
+                debuga("iter: " + str(iter))
+
+                for item in f_item_list:
+                    debuga("item.item_set: " + str(item.item_set))
+                    if set(iter).issubset(item.item_set):
+                        inside = 1
+                        break
 
 
-    return cand_trans_set
+                if inside == 0:
+                    if item_list not in removed_list:
+                        cand_trans_list.remove(item_list)
+                        removed_list.append(item_list)
+
+
+    debuga("cand_trans_list: " + str(cand_trans_list))
+
+
+    for item_list in cand_trans_list:
+        trans = Transaction(set(item_list))
+        ht.add_trans(trans)
+
+
+    return cand_trans_list
 
 ############################################################################
 #                              Get subsets of Function                     #
 ############################################################################
 
-def get_subsets_of(item_list,size,return_list):
+def get_subsets_of(item_list,temp_list,return_list):
     #    for item in get_subset_recursive(len(item_list),size):
     #    return_list.append(list(item_list[i] for i in item))
     #    yield list(item[i] for i in item)
-    #
-    if len(item_list) == 2:
-        [return_list.append(
 
+    for i in range(len(item_list)):
+        temp_list.extend(item_list[0:i])
+        temp_list.extend(item_list[i+1:])
+        return_list.append(temp_list)
+        temp_list = []
 
-
-
-def get_subset_recursive(n,size):
-    j = 1
-
-
-    print item_list
-    for item1 in item_list:
-        for item2 in item_list[j:]:
-            new_list = item1[:]
-            new_list.extend(item2)
-            print item1
-            print item2
-            assert(new_list != item1)
-            if(len(new_list)== size):
-                return_list.append(new_list)
-            get_subsets_of(new_list,size,return_list)
-
-#
-#    if size == 0 or n < size:
-#        yield set()
-#
-#    for item in get_subset_recursive(n-1,size-1):
-#        item.append(n-1)
-#        yield item
-#    for item in get_subset_recursive(n-1,size):
-#        return_list.append(item)
-#        yield item
-#
 
 ############################################################################
 #                               Check item last                            #
@@ -410,7 +398,7 @@ def apriori(minsup, w_size,file, d_window,node_threshold):
 ###########################################################################
 
 def debuga(data):
-    if True:
+    if False:
 #        sys.stderr.write(str(data))
 #        sys.stderr.write('\n')
         print data
