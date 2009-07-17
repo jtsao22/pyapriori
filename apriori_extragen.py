@@ -3,6 +3,8 @@
 import getopt
 import string,sys
 import hash_tree
+from optparse import OptionParser
+
 
 #############################################################################
 #                           Transaction Class                               #
@@ -418,18 +420,21 @@ def debuga2(data):
 # Call Apriori Algorithm
 if __name__ == '__main__':
 
-    try:
-        opts,args = getopt.getopt(sys.argv[2:], "d")
-    except getopt.GetoptError, err:
-        debuga(str(err))
-        sys.exit(2)
 
-    dynamic_window = 0
-    for o,a in opts:
-        if o == "-d":
-            dynamic_window = 1
-        else:
-            print "Unhandled option"
+    o_parser = OptionParser()
+    o_parser.add_option("-d", action="store_true", dest="dynamic_window",
+            default=0,help="This enables dynamic windowing")
+    o_parser.add_option("-m", action="store",dest="minsup",default=3,\
+            help="This sets minsup")
+    o_parser.add_option("-w", action="store",dest="w_size",help="This\
+            sets the window size",default=5)
+    o_parser.add_option("-t", action="store",dest="threshold",help=\
+            "This sets the node threshold",default=3)
+    o_parser.add_option("-f",action="store",type = "string",dest="filename",help=\
+            "This sets the filename",default="all_50_node_0.txt")
 
-    apriori(3,5,sys.argv[1],dynamic_window,3)
+    (options,args) = o_parser.parse_args()
+
+    apriori(options.minsup,options.w_size,options.filename,\
+            options.dynamic_window,options.threshold)
 
