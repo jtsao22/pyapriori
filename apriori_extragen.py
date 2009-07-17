@@ -313,7 +313,7 @@ def check_item_last(trans1, trans2):
 ############################################################################
 
 
-def apriori(minsup, w_size,file, d_window,node_threshold):
+def apriori(minsup, w_size,file, outputfile,d_window,node_threshold):
 
     # minsup is the minimum frequency support, w_size is the window
     # size, file is the file taken in as input, d_window specifies if
@@ -384,7 +384,7 @@ def apriori(minsup, w_size,file, d_window,node_threshold):
 
     # Send the data to an output file showing each set on a line. Sets
     # are shown from the most items to the least items
-    outputfile = open ('outputfile.txt', 'w')
+    outputfile = open (outputfile, 'w')
     for k in sorted(all_Lk_dict.keys(),reverse=True):
         for i in all_Lk_dict[k]:
             temp_list = []
@@ -433,8 +433,12 @@ if __name__ == '__main__':
     o_parser.add_option("-f",action="store",type = "string",dest="filename",help=\
             "This sets the filename",default="all_50_node_0.txt")
 
+    o_parser.add_option("-o",action="store",type="string",dest="o_filename",help=\
+            "This sets the output filename", default="outputfile.txt")
+
+
     (options,args) = o_parser.parse_args()
 
-    apriori(options.minsup,options.w_size,options.filename,\
+    apriori(options.minsup,options.w_size,options.filename,options.o_filename,\
             options.dynamic_window,options.threshold)
 
