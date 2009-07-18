@@ -17,7 +17,7 @@ class Transaction:
                                     #Transaction
         self.item_set = item_set
         self.item_list = list(sorted(item_set))
-        self.count = 0                      # initialize its count to zero
+        self.count = 0
 
     def __cmp__(self, other):
         return cmp(self.item_list,other.item_list)
@@ -31,11 +31,6 @@ class Transaction:
         out_string += str(self.count)
         return out_string
 
-    def subset(self, transaction):
-        # check if transaction's item_set is a subset of this
-        # transaction's item_set
-        return transaction.item_set.issubset(self.item_set)
-
 
 ############################################################################
 #                       Parser Function                                    #
@@ -44,9 +39,9 @@ class Transaction:
 def parser(w_size,file_name,d_wind):   # Used to get information from file
                                         #and put the data into transactions
 
-    file=open(file_name,'r')                  # Open the file
-
-    transaction_list = []    # create a list that holds the transactions
+    file=open(file_name,'r')
+    # create a list that holds the transactions
+    transaction_list = []
 
 
     # create a list that has parse_lists as its elements
@@ -64,7 +59,7 @@ def parser(w_size,file_name,d_wind):   # Used to get information from file
     # create a hash dictionary to map hashed number to functions names
     hash_dict = {}
 
-    if d_wind == 0:
+    if d_wind == False:
         for start_t in token_list[:-w_size + 1]:
             for token in token_list[i:i+w_size]:
                 parse_list.add(hash(token))
@@ -78,8 +73,10 @@ def parser(w_size,file_name,d_wind):   # Used to get information from file
             i += 1
     else:
         for index,start_t in enumerate(token_list):
-            for ind, token in enumerate(token_list[index:]):
-                if token == start_t and ind != 0:
+            parse_list.add(hash(start_t))
+            for ind, token in enumerate(token_list[index+1:]):
+                if token == start_t:
+                    list_of_parses.append(sorted(list(parse_list)))
                     parse_list = set([])
                     break
                 else:
@@ -155,9 +152,13 @@ def one_item_sets(T, minsup): # this function gets L_1 using the
 
     all_transactions_list = []
 
+    # initialize counter for total amount of transactions
+    total_num_trans = 0
+
     for transaction in T:
         #all_transactions_set.update(transaction.item_set)
         all_transactions_list += transaction.item_set
+        total_num_trans += 1
 
     all_transactions_set = set(all_transactions_list)
 
@@ -170,9 +171,9 @@ def one_item_sets(T, minsup): # this function gets L_1 using the
 
 
     # call frequency_qualifier to remove items whose counts are < minsup
-    item_dict = frequency_qualifier(item_list,minsup)
+    item_dict = frequency_qualifier(item_list,minsup*total_num_trans)
 
-    return item_dict
+    return item_dict,minsup*total_num_trans
 
 
 #############################################################################
@@ -203,15 +204,16 @@ def generate(f_item_list,minsup,ht): # used to find the candidate
                                        # transaction set Ck
 
     f_item_list.sort()
-    debuga("f_item_list: " + str(f_item_list))
     assert(check_item_last(Transaction(set([1,3,4])),Transaction(set([1,2,3])))==[])
     assert(check_item_last(Transaction(set([1,2,3])),Transaction(set([1,2,4])))==
             [1,2,3,4])
 
     # Join Step of Generate function
-    cand_trans_list = []    # initialize the candidate transaction list
-                            # that holds the candidate item lists
 
+    # initialize the candidate transaction list that holds the candidate
+    # item lists
+
+    cand_trans_list = []
     index = 1
 
     for trans1 in f_item_list:
@@ -220,9 +222,6 @@ def generate(f_item_list,minsup,ht): # used to find the candidate
             if check != []:
                 cand_trans_list.append(check)
         index += 1
-
-
-    debuga("cand_trans_list: " + str(cand_trans_list))
 
     # Prune Step of Generate function
     subsets = []
@@ -235,20 +234,14 @@ def generate(f_item_list,minsup,ht): # used to find the candidate
     for item_list in cand_trans_list:
         temp_list = []
         subsets = []
-        debuga("item_list: " + str(item_list))
         get_subsets_of(item_list,temp_list,subsets)
 
-
-
-        debuga("subsets: " + str(subsets))
         for iter in subsets:
             if iter not in checked_sets:
                 checked_sets.append(iter)
                 inside = 0
-                debuga("iter: " + str(iter))
 
                 for item in f_item_list:
-                    debuga("item.item_set: " + str(item.item_set))
                     if set(iter).issubset(item.item_set):
                         inside = 1
                         break
@@ -258,9 +251,6 @@ def generate(f_item_list,minsup,ht): # used to find the candidate
                     if item_list not in removed_list:
                         cand_trans_list.remove(item_list)
                         removed_list.append(item_list)
-
-
-    debuga("cand_trans_list: " + str(cand_trans_list))
 
 
     for item_list in cand_trans_list:
@@ -275,9 +265,6 @@ def generate(f_item_list,minsup,ht): # used to find the candidate
 ############################################################################
 
 def get_subsets_of(item_list,temp_list,return_list):
-    #    for item in get_subset_recursive(len(item_list),size):
-    #    return_list.append(list(item_list[i] for i in item))
-    #    yield list(item[i] for i in item)
 
     for i in range(len(item_list)):
         temp_list.extend(item_list[0:i])
@@ -316,15 +303,23 @@ def check_item_last(trans1, trans2):
 def apriori(minsup, w_size,file, outputfile,d_window,node_threshold):
 
     # minsup is the minimum frequency support, w_size is the window
-    # size, file is the file taken in as input, d_window specifies if
-    # the dynamic windowing option should be used or not
+    # size, file is the file taken in as input,outputfile is the file to
+    # be outputted to, d_window specifies if the dynamic windowing option
+    #should be used or not, and node_threshold is the threshold
+    # specifying if a leaf node should change into an interior node
+
     # Get the transaction_list T using the parser function (read from
     # file)
+
+
     transaction_list,hash_dict =  parser(w_size,file,d_window)
 
+
     # Get L_1, the large 1-itemsets that appear more than minsup
-    L_1 = one_item_sets(transaction_list,minsup)
+    L_1,minsup = one_item_sets(transaction_list,minsup)
     L_kminusone_set = L_1
+
+    print "minsup: ",minsup
 
     # all_Lk_dict holds all frequent itemsets with item_count mapped to
     # the itemsets
@@ -349,10 +344,8 @@ def apriori(minsup, w_size,file, outputfile,d_window,node_threshold):
 
         for trans in transaction_list:
             # call Subset to form the final candidate transaction list
-            #cand_list_final = Subset(cand_trans_list,trans)
             ht.cand_list_final = []
             ht.subset(trans)
-            debuga(str(len(ht.cand_list_final)))
 
             for candidates in ht.cand_list_final:
                 # increment the count for candidates in the final list
@@ -362,20 +355,14 @@ def apriori(minsup, w_size,file, outputfile,d_window,node_threshold):
         ht.L_k_set = []
         # create the Lk set, which is made up of candidates from the
         # candidate transaction list that have counts >= minsup
-        #for c in cand_trans_list:
-        #    print "c in cand_trans_list: ", c
-        #    if c.count >= minsup:
-        #        L_k_set.append(c)
 
         ht.check_minsup(ht.root,minsup)
-        #L_k_set = ht.L_k_set
 
         if ht.L_k_set != []:
             # add the set to the all_Lk_dict if its not an empty set
             all_Lk_dict[k] = ht.L_k_set
 
         # increment to the next iteration
-
         L_kminusone_set = ht.L_k_set
         k += 1
 
@@ -401,9 +388,8 @@ def apriori(minsup, w_size,file, outputfile,d_window,node_threshold):
 
 def debuga(data):
     if False:
-#        sys.stderr.write(str(data))
-#        sys.stderr.write('\n')
-        print data
+        sys.stderr.write(str(data))
+        sys.stderr.write('\n')
 
 def debuga2(data):
     if True:
@@ -423,15 +409,13 @@ if __name__ == '__main__':
 
     o_parser = OptionParser()
     o_parser.add_option("-d", action="store_true", dest="dynamic_window",
-            default=0,help="This enables dynamic windowing")
-    o_parser.add_option("-m", action="store",dest="minsup",default=3,\
-            help="This sets minsup")
-    o_parser.add_option("-w", action="store",dest="w_size",help="This\
-            sets the window size",default=5)
+            default=False,help="This enables dynamic windowing")
+    o_parser.add_option("-m", action="store",dest="minsup",default=0.003,\
+            help="This sets the minsup percentage")
+    o_parser.add_option("-w", action="store",dest="w_size",help=\
+            "This sets the window size",default=5)
     o_parser.add_option("-t", action="store",dest="threshold",help=\
             "This sets the node threshold",default=3)
-    o_parser.add_option("-f",action="store",type = "string",dest="filename",help=\
-            "This sets the filename",default="all_50_node_0.txt")
 
     o_parser.add_option("-o",action="store",type="string",dest="o_filename",help=\
             "This sets the output filename", default="outputfile.txt")
@@ -439,6 +423,13 @@ if __name__ == '__main__':
 
     (options,args) = o_parser.parse_args()
 
-    apriori(options.minsup,options.w_size,options.filename,options.o_filename,\
+    if len(args) != 1:
+        o_parser.error("Incorrect amount of arguments")
+
+    if float(options.minsup) < 0.0 or  float(options.minsup) > 1.0:
+        o_parser.error("Minsup is a percentage and must be between 0\
+        and 1")
+
+    apriori(float(options.minsup),options.w_size,args[0],options.o_filename,\
             options.dynamic_window,options.threshold)
 
