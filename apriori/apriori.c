@@ -37,7 +37,7 @@ int parser(char* file_name,int w_size, int d_wind)
  	int token = 0;
  	int iter = 0;
  	struct node *parse_list = NULL;
- 	
+ 	 	
  	for(k; k < get_len_list(token_list)-w_size + 1; k++)
  	{ 
  		for(token = i; token < i + w_size; token++)
@@ -102,11 +102,3 @@ FILE* read_file(char* file_name)
 }
 
 
-
-
-//int main(int argc,char * argv[])
-//{
-//	
-//	printf("helloworld people");
-//	return 0;
-//}

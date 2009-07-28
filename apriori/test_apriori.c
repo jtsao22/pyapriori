@@ -89,15 +89,36 @@ void test_get_data(void **state)
 	
 }
 
+void test_merge_sort(void **state)
+{
+	struct node * test = NULL;
+	char f[40];
+	add(&test,1);
+	add(&test,4);
+	add(&test,2);
+	add(&test,5);
+	add(&test,3);
+	//print_nodes(test);
+	//printf("%i",get_data(test,0));
+	mergesort(test);
+	printf("print nodes: ");
+	print_nodes(test);
+	//sprintf(f,"%i",get_data(test,0));
+	printf("End list: %s", f);
+}
+	
 
-int main(int argc, char* argv[]) {
-	UnitTest tests[] = {
+int main(int argc, char* argv[]) 
+{
+	UnitTest tests[] = 
+	{
 		unit_test(test_parser),
 		unit_test(test_read_file),
 		unit_test(test_get_token_list),
 		unit_test(test_get_len_list),
 		unit_test(test_get_windows),
-		unit_test(test_get_data)
+		unit_test(test_get_data),
+		unit_test(test_merge_sort)
 		
 	};
 	return run_tests(tests);
