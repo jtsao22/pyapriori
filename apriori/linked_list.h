@@ -4,16 +4,17 @@
 
 struct node 
 {
-	int data;
+	void* data;
 	struct node* next;
 };
 
 
 
-int add(struct node **n, int d);
+int add(struct node **n, void* d);
 void print_nodes(struct node *n);
 int get_len_list(struct node *n);
-int get_data(struct node *n, int index);
+void *get_data(struct node *n, int index);
+void free_list(struct node **n);
 
 struct node *mergesort(struct node *head);
 struct node *merge(struct node *head_one, struct node *head_two);
