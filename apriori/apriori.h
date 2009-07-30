@@ -14,12 +14,16 @@
 
 
 
-int parser(char* file_name,int w_size, int d_wind);
+struct node* parser(char* file_name,int w_size, int d_wind);
 
 FILE* read_file(char* file_name);
 
 struct node* get_token_list(FILE* fp);
  
 struct node* get_windows(struct node* token_list, int w_size);
+
+int compare_ints(void* first, void* second);
+
+int compare_lists(void* first, void* second);
 
 #endif /*APRIORI_H_*/

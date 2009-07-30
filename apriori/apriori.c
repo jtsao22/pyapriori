@@ -3,17 +3,19 @@
 #include "apriori.h"
 #include "linked_list.h"
 
+//#if UNIT_TESTING
 //#define malloc(size) _test_malloc(size, __FILE__, __LINE__)
+//#define free(ptr) _test_free(ptr, __FILE__, __LINE__)
+//#endif // UNIT_TESTING
 
-
-int parser(char* file_name,int w_size, int d_wind)
+struct node* parser(char* file_name,int w_size, int d_wind)
 {
+	struct node* list_of_parses = NULL;
 	// Open the file and get the file descriptor
 	FILE* fp = read_file(file_name);
-	
 	if(fp == NULL)
 	{
-		return 0;
+		return NULL;
 	}
 	
 	// get the token list
@@ -21,7 +23,8 @@ int parser(char* file_name,int w_size, int d_wind)
 	
 	if(d_wind == FALSE)
 	{
-		//get_windows(
+		//get the windows w/o dynamic windowing
+		list_of_parses = get_windows(token_list, w_size);
 		
 	}
 	
@@ -29,23 +32,25 @@ int parser(char* file_name,int w_size, int d_wind)
 	{
 	}
 	
-	return 1;
+	//sort the list
+	list_of_parses = mergesort(list_of_parses,&compare_lists);
+	
+	
+	return list_of_parses;
 
 }
 
- struct node* get_windows(struct node* token_list, int w_size)
- {
+struct node* get_windows(struct node* token_list, int w_size)
+{
  	int k = 0;
- 	int i = 0;
  	int token = 0;
  	int iter = 0;
  	int * temp = NULL;
  	struct node *parse_list = NULL;
  	struct node *list_of_parses = NULL;
- 	 	
  	for(k; k < get_len_list(token_list)-w_size + 1; k++)
  	{ 
- 		for(token = i; token < i + w_size; token++)
+ 		for(token = k; token < k + w_size; token++)
  		{
  			temp = malloc(sizeof(int));
  			*temp = *((int *)get_data(token_list,token));
@@ -59,36 +64,24 @@ int parser(char* file_name,int w_size, int d_wind)
  				iter++;
  			else
  			{
- 				printf("New parse List: \n");
- 				print_nodes(parse_list);
  				add(&list_of_parses,(void *)parse_list);
- 				printf("print nodes: \n");
- 				print_nodes((struct node *)(get_data(list_of_parses,0)));
- 				
- 				printf("%i", *((int *)(((struct node *)(get_data(list_of_parses,0)))->data)));
- 				free_list(&parse_list);
+ 				parse_list = NULL;
  				iter = 0;
  					
  			}
  			
- 		}
- 		i++;
- 			
+ 		} 			
  	}
- 	
- 	
- 	print_nodes((struct node *)(get_data(list_of_parses,0)));
- 	
+ 
  	return list_of_parses;
- 	
- 	
- }
+  	
+}
 
 struct node* get_token_list(FILE* fp)
 {
-	char* s;
+	char *s;
 	struct node *head = NULL;
-	int * temp = NULL;
+	int *temp = NULL;
 		
 	while(!feof(fp))
 	{
@@ -132,5 +125,7 @@ FILE* read_file(char* file_name)
 		
 	
 }
+
+
 
 

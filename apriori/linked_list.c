@@ -4,6 +4,7 @@
 #include <string.h>
 
 //#define malloc(size) _test_malloc(size, __FILE__, __LINE__)
+//#define free(ptr) _test_free(ptr, __FILE__, __LINE__)
 
 int add(struct node **n, void* d)
 {
@@ -29,29 +30,34 @@ int add(struct node **n, void* d)
 	
 }
 
-void print_nodes(struct node *n)
-{
-	//print the node data in the linked list
-	while(n != NULL)
-	{
-		printf("%i\n",*((int *)n->data));
-		n = n->next;
-	}
-		
-}
+
 
 
 void free_list(struct node **n)
 {
 	struct node *current;
 	struct node *next;
-	for(current = *n; current != NULL; current= next)
+	for(current = *n; current != NULL; current = next)
 	{
 		next = current->next; 
 		free(current);
 	}
 	*n = current;
 	
+	
+}
+
+void free_list_of_lists(struct node **n)
+{
+	struct node *current;
+	struct node *next;
+	for(current = *n; current != NULL; current = next)
+	{
+		next = current->next;
+		current->data = (struct node*)(current->data);
+		free_list(current->data);
+	}	
+	*n = current;
 	
 }
 
@@ -93,7 +99,7 @@ void *get_data(struct node *n, int index)
 }
 
 /* merge the lists.. */
-struct node *merge(struct node *head_one, struct node *head_two) 
+struct node *merge(struct node *head_one, struct node *head_two,int (*cmp)(void *,void *)) 
 {
 	struct node *head_three;
 	
@@ -103,23 +109,68 @@ struct node *merge(struct node *head_one, struct node *head_two)
 	if(head_two == NULL) 
 		return head_one;
 	
-	if(*((int *)(head_one->data)) < *((int *)(head_two->data))) 
+	int compare = (*cmp)(head_one->data,head_two->data);
+	if(compare == -1) 
 	{
 	  	head_three = head_one;
-		head_three->next = merge(head_one->next, head_two);
+		head_three->next = merge(head_one->next, head_two,cmp);
 	} 
 	else 
 	{
 	  	head_three = head_two;
-		head_three->next = merge(head_one, head_two->next);
+		head_three->next = merge(head_one, head_two->next,cmp);
 	}
 	
 	return head_three;
 }
 
+int compare_ints(void* first, void* second)
+{
+	int int_1 = *((int *)(first));
+	int int_2 = *((int *)(second));
+	if(int_1 < int_2)
+		return -1;
+	else if(int_1 > int_2)
+		return 1;
+	else
+		return 0;
+	
+	
+}
 
 
-struct node *mergesort(struct node *head) 
+int compare_lists(void* first, void* second)
+{
+	
+	struct node* list_1 = (struct node*)(first);
+	struct node* list_2 = (struct node*)(second);
+	
+	while(list_1 != NULL && list_2 != NULL)
+	{
+		if(*((int *)(list_1->data)) < *((int *)(list_2->data)))
+			return -1;
+		else if(*((int *)(list_1->data)) > *((int *)(list_2->data)))
+			return 1;
+		else
+		{
+			list_1 = list_1->next;
+			list_2 = list_2->next;
+		}	
+		
+		
+	}	
+	
+	if(list_1 == NULL && list_2 == NULL)	
+		return 0;
+	else if(list_1 == NULL && list_2 != NULL)
+		return -1;
+	else
+		return 1;	
+	
+}
+
+
+struct node *mergesort(struct node *head,int (*cmp)(void *,void *)) 
 {
 	struct node *head_one;
 	struct node *head_two;
@@ -137,7 +188,7 @@ struct node *mergesort(struct node *head)
 	head_two = head->next;
 	head->next = NULL;
 	
-	return merge(mergesort(head_one), mergesort(head_two));
+	return merge(mergesort(head_one,cmp), mergesort(head_two,cmp),cmp);
 }
 
 
