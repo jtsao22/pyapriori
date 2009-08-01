@@ -8,6 +8,15 @@
 #include "apriori.h"
 #include "linked_list.h"
 
+
+extern void* _test_malloc(const size_t size, const char* file, const int line);
+extern void _test_free(void* const ptr, const char* file, const int line);
+#define malloc(size) _test_malloc(size, __FILE__, __LINE__)
+#define free(ptr) _test_free(ptr, __FILE__, __LINE__)
+
+
+
+
 void print_nodes(struct node *n)
 {
 	//print the node data in the linked list
@@ -42,19 +51,12 @@ void test_get_token_list(void **state)
 	// Test file w/ 1 2 3 4 on same line
 	
 	FILE *f = read_file("test.dat");
-	struct node* check = get_token_list(f);
-
-//	assert_int_equal(*((int *)check->data),1);
-//	check = check->next;
-//	assert_int_equal(*((int *)check->data),2);
-//	check = check->next;
-//	assert_int_equal(*((int *)check->data),3);
-//	check = check->next;
-//	assert_int_equal(*((int *)check->data),4);
-//	check = check->next;
-//	assert_true(check == NULL);
-//	
 	
+	struct node* check = get_token_list(f);
+	assert_true(*((int *)get_data(check,0))==1);
+	assert_true(*((int *)get_data(check,1))==2);
+	assert_true(*((int *)get_data(check,2))==3);
+	assert_true(*((int *)get_data(check,3))==4);
 	free_list(&check);
 	fclose(f);
 
@@ -90,21 +92,40 @@ void test_get_windows(void **state)
 	FILE *f = read_file("test.dat");
 	struct node* check = get_token_list(f);
 	struct node* list_of_parses = get_windows(check,3);
-	//print_nodes(list_of_parses);
 	assert_int_equal(*((int *)(get_data((struct node *)(get_data(list_of_parses,0)),0))),1);
 	assert_int_equal(*((int *)(get_data((struct node *)(get_data(list_of_parses,0)),1))),2);
 	assert_int_equal(*((int *)(get_data((struct node *)(get_data(list_of_parses,0)),2))),3);
-	assert_int_equal(*((int *)(get_data((struct node *)(get_data(list_of_parses,0)),3))),-3);
-	assert_int_equal(*((int *)(get_data((struct node *)(get_data(list_of_parses,1)),-1))),-3);
 	assert_int_equal(*((int *)(get_data((struct node *)(get_data(list_of_parses,1)),0))),2);
 	assert_int_equal(*((int *)(get_data((struct node *)(get_data(list_of_parses,1)),1))),3);
 	assert_int_equal(*((int *)(get_data((struct node *)(get_data(list_of_parses,1)),2))),4);
-	assert_int_equal(*((int *)(get_data((struct node *)(get_data(list_of_parses,1)),3))),-3);
-	assert_int_equal(*((int *)(get_data((struct node *)(get_data(list_of_parses,2)),2))),-3);
-	assert_int_equal(*((int *)(get_data(list_of_parses,2))),-3);
 	free_list(&check);
+	free_list_of_lists(&list_of_parses);
 	fclose(f);
 	
+}
+
+void test_get_dynamic_windows(void **state)
+{
+	FILE *f = read_file("test.dat");
+	struct node* check = get_token_list(f);
+	struct node* list_of_parses = get_dynamic_windows(check);
+	struct node *temp = (struct node *)(get_data(list_of_parses,0));
+	assert_int_equal(*((int *)(get_data(temp,0))),1);
+	assert_int_equal(*((int *)(get_data(temp,1))),2);
+	assert_int_equal(*((int *)(get_data(temp,2))),3);
+	assert_int_equal(*((int *)(get_data(temp,3))),4);
+	temp = (struct node *)(get_data(list_of_parses,1));
+	assert_int_equal(*((int *)(get_data(temp,0))),2);
+	assert_int_equal(*((int *)(get_data(temp,1))),3);
+	assert_int_equal(*((int *)(get_data(temp,2))),4);
+	temp = (struct node *)(get_data(list_of_parses,2));
+	assert_int_equal(*((int *)(get_data(temp,0))),3);
+	assert_int_equal(*((int *)(get_data(temp,1))),4);
+	temp = (struct node *)(get_data(list_of_parses,3));
+	assert_int_equal(*((int *)(get_data(temp,0))),4);
+	free_list(&check);
+	free_list_of_lists(&list_of_parses);
+	fclose(f);
 }
 
 void test_get_data(void **state)
@@ -115,7 +136,6 @@ void test_get_data(void **state)
 	assert_true(*((int *)get_data(check,1))==2);
 	assert_true(*((int *)get_data(check,2))==3);
 	assert_true(*((int *)get_data(check,3))==4);
-	//assert_true(*((int *)get_data(check,4))==-3);
 	fclose(f);
 	free_list(&check);
 }
@@ -171,9 +191,8 @@ void test_merge_sort(void **state)
 	
 	print_lists(test_2);
 	
-	
-	
-	
+	free_list_of_lists(&test_2);
+
 	
 }
 	
@@ -184,15 +203,13 @@ void test_free_list(void **state)
 	int *temp = malloc(sizeof(int));
 	*temp = 4;
 	add(&test,(void *)temp);
+	temp = malloc(sizeof(int));
+	*temp = 2;
+	add(&test,(void *)temp);
+	assert_int_equal(*((int *)get_data(test,0)),4);
+	assert_int_equal(*((int *)get_data(test,1)),2);
 	free_list(&test);
-//	temp = malloc(sizeof(int));
-//	*temp = 2;
-//	add(&test,(void *)temp);
-//	assert_int_equal(*((int *)get_data(test,0)),4);
-//	assert_int_equal(*((int *)get_data(test,1)),2);
-//	free_list(&test);
-//	assert_true(test == NULL);
-//	
+	
 	
 }
 
@@ -210,23 +227,16 @@ void test_free_list_of_lists(void **state)
 	
 	assert_int_equal(*((int *)get_data(test,0)),4);
 	assert_int_equal(*((int *)get_data(test,1)),2);
-	
-	add(&test_2, (void *)test);
-	
-	free_list_of_lists(&test_2);
-	//free_list(&test);
-//	temp = NULL;
-//	temp = malloc(sizeof(int));
-//	*temp = 3;
-//	add(&test,(void *)temp);
-//	temp = malloc(sizeof(int));
-//	*temp = 4;
-//	add(&test,(void *)temp);
-//	assert_int_equal(*((int *)get_data(test,0)),3);
-//	assert_int_equal(*((int *)get_data(test,1)),4);
-//	add(&test_2, (void *)test);
 
-	
+	add(&test_2, (void *)test);
+	temp = NULL;
+	temp = malloc(sizeof(int));
+	*temp = 3;
+	add(&test,(void *)temp);
+	temp = malloc(sizeof(int));
+	*temp = 4;
+	add(&test,(void *)temp);
+	free_list_of_lists(&test_2);	
 	
 }
 
@@ -247,27 +257,18 @@ void test_compare_lists(void **state)
 	*temp = 2;
 	add(&test_2,(void *)temp);
 	assert_int_equal(compare_lists((void *)test_1,(void *)test_2),1);
-	free_list(&test_2);
+	assert_int_equal(compare_lists((void *)test_2,(void *)test_1),-1);
 	temp = malloc(sizeof(int));
 	*temp = 2;
 	add(&test_2,(void *)temp);
 	temp = malloc(sizeof(int));
 	*temp = 5;
 	add(&test_2,(void *)temp);
-	assert_int_equal(compare_lists((void *)test_1,(void *)test_2),-1);
+	assert_int_equal(compare_lists((void *)test_1,(void *)test_2),1);
 	assert_int_equal(compare_lists((void *)test_1,(void *)test_1),0);
 	assert_int_equal(compare_lists((void *)test_2,(void *)test_2),0);
+	free_list(&test_1);
 	free_list(&test_2);
-	temp = malloc(sizeof(int));
-	*temp = 2;
-	add(&test_2,(void *)temp);
-	temp = malloc(sizeof(int));
-	*temp = 4;
-	add(&test_2,(void *)temp);
-	temp = malloc(sizeof(int));
-	*temp = 3;
-	add(&test_2,(void *)temp);
-	assert_int_equal(compare_lists((void *)test_1,(void *)test_2),-1);
 }
 
 
@@ -276,16 +277,16 @@ int main(int argc, char* argv[])
 	UnitTest tests[] = 
 	{
 		unit_test(test_free_list),
-//		unit_test(test_parser),
-//		unit_test(test_read_file),
-//		unit_test(test_get_token_list),
-//		unit_test(test_get_len_list),
-//		unit_test(test_get_windows),
-//		unit_test(test_get_data),
-//		unit_test(test_merge_sort),
-//		
-//		unit_test(test_free_list_of_lists),
-//		unit_test(test_compare_lists)
+		unit_test(test_free_list_of_lists),
+		unit_test(test_parser),
+		unit_test(test_read_file),
+		unit_test(test_get_token_list),
+		unit_test(test_get_len_list),
+		unit_test(test_get_windows),
+		unit_test(test_get_data),
+		unit_test(test_merge_sort),
+		unit_test(test_compare_lists),
+		unit_test(test_get_dynamic_windows)
 		
 	};
 	return run_tests(tests);

@@ -4,13 +4,12 @@
 #include "apriori.h"
 #include "linked_list.h"
 
-//#if UNIT_TESTING
-//extern void* _test_malloc(const size_t size, const char* file, const int line);
-//extern void _test_free(void* const ptr, const char* file, const int line);
 
-//#define malloc(size) _test_malloc(size, __FILE__, __LINE__)
-//#define free(ptr) _test_free(ptr, __FILE__, __LINE__)
-//#endif // UNIT_TESTING
+extern void* _test_malloc(const size_t size, const char* file, const int line);
+extern void _test_free(void* const ptr, const char* file, const int line);
+#define malloc(size) _test_malloc(size, __FILE__, __LINE__)
+#define free(ptr) _test_free(ptr, __FILE__, __LINE__)
+
 
 struct node* parser(char* file_name,int w_size, int d_wind)
 {
@@ -34,15 +33,26 @@ struct node* parser(char* file_name,int w_size, int d_wind)
 	
 	else
 	{
+		/* get the windows w/dynamic windowing */ 
+		list_of_parses = get_dynamic_windows(token_list);
 	}
+	
 	
 	//sort the list
 	list_of_parses = mergesort(list_of_parses,&compare_lists);
 	
-	
+	/* find average window size and max window size */ 
+
+	/*cleanup */ 
+	free_list(&token_list);
+	fclose(fp);
+
 	return list_of_parses;
 
 }
+
+
+
 
 struct node* get_windows(struct node* token_list, int w_size)
 {
@@ -81,6 +91,61 @@ struct node* get_windows(struct node* token_list, int w_size)
   	
 }
 
+struct node* get_dynamic_windows(struct node* token_list)
+{
+	int *temp = NULL;
+	struct node *parse_list = NULL;
+ 	struct node *list_of_parses = NULL;
+	struct node* start_t = token_list;
+	struct node* token = NULL;
+	while(start_t != NULL)
+	{
+		temp = (int *)malloc(sizeof(int));
+		*temp = *((int *)start_t->data);
+		if(!add(&parse_list,(void *)temp))
+		{
+			printf("Error while reading from file");
+			exit(0);
+		}
+		token = start_t->next;
+		while(token != NULL)
+		{
+			if(*((int *)token->data) == *((int *)start_t->data))
+			{
+				parse_list = mergesort(parse_list,&compare_ints);
+				add(&list_of_parses,(void *)parse_list);
+				parse_list = NULL;
+				break;
+			}
+			else
+			{
+				temp = (int *)malloc(sizeof(int));
+				*temp = *((int *)token->data);
+				if(!add(&parse_list,(void *)temp))
+				{
+					printf("Error while reading from file");
+					exit(0);
+				}
+			}
+			token = token->next;
+		}
+		if(parse_list != NULL || *((int *)token->data) != *((int *)start_t->data))
+		{
+			if(parse_list != NULL)
+			{
+				parse_list = mergesort(parse_list,&compare_ints);
+				add(&list_of_parses,(void *)parse_list);
+			}
+			parse_list = NULL;
+		}	
+		start_t = start_t->next;
+		
+			
+	}
+	return list_of_parses;
+	
+}
+
 struct node* get_token_list(FILE* fp)
 {
 	char *s;
@@ -94,7 +159,6 @@ struct node* get_token_list(FILE* fp)
 		{	
 			temp = malloc(sizeof(int));
 			*temp = atoi(s);
-			printf("temp: %i",*temp);
 			if(!add(&head,(void *) temp))
 			{
 				printf("Error while reading from file");
@@ -124,8 +188,7 @@ FILE* read_file(char* file_name)
 		printf("Cannot open file.\n");
 		return NULL;
 	}
-	
-	
+
 	return fp;
 		
 	

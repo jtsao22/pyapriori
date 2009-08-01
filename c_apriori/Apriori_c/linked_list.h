@@ -1,6 +1,14 @@
 #ifndef LINKED_LIST_
 #define LINKED_LIST_
 
+#ifndef TRUE
+#define TRUE 1
+#endif 
+
+#ifndef FALSE
+#define FALSE 0
+#endif
+
 
 struct node 
 {
