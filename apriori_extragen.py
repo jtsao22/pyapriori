@@ -84,6 +84,8 @@ def parser(w_size,file_name,d_wind):   # Used to get information from file
                     hash_dict[hash(token)] = token
 
             if parse_list != set([]) or token != start_t:
+                if parse_list != set([]):
+                    list_of_parses.append(sorted(list(parse_list)))
                 parse_list = set([])
 
     list_of_parses.sort()
