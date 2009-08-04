@@ -13,6 +13,7 @@
 struct node 
 {
 	void* data;
+	int count;
 	struct node* next;
 };
 

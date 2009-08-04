@@ -32,6 +32,7 @@ int add(struct node **n, void* d)
 			return 0;
 		}
 		(*n)->next = NULL;
+		(*n)->count = 0;
 		(*n)->data = d;	
 		
 	}
@@ -50,6 +51,7 @@ int add(struct node **n, void* d)
 		}
 		temp->next->next = NULL;
 		temp->next->data = d;	
+		temp->next->count = 0;
 	}
 	return 1;
 	
@@ -114,7 +116,7 @@ void *get_data(struct node *n, int index)
 	// in case there's an error. 	
 	printf("Error: The data was not found in linked list");
 	assert(FALSE);
-
+	return 0;
 }
 
 

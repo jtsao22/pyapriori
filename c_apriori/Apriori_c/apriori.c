@@ -43,6 +43,31 @@ struct node* parser(char* file_name,int w_size, int d_wind)
 	
 	/* find average window size and max window size */ 
 
+	struct node* iter = list_of_parses;
+	
+	struct Transaction *transaction_list = NULL;
+	
+	int total_window_size = 0;
+	int max_window_size = 0;
+	int temp;
+	
+	while(iter != NULL)
+	{
+		temp = get_len_list((struct node*)(iter->data));
+		total_window_size += temp;
+		if(max_window_size < temp)
+			max_window_size = temp;
+		iter = iter->next;	
+		
+	}
+	
+	printf("Average Window Size: ");
+	printf("%i\n",total_window_size/get_len_list((struct node*)(list_of_parses)));
+	
+	printf("Max Window Size: ");
+	printf("%i\n",max_window_size);
+
+
 	/*cleanup */ 
 	free_list(&token_list);
 	fclose(fp);
@@ -50,7 +75,6 @@ struct node* parser(char* file_name,int w_size, int d_wind)
 	return list_of_parses;
 
 }
-
 
 
 
@@ -68,22 +92,24 @@ struct node* get_windows(struct node* token_list, int w_size)
  		{
  			temp = (int *)malloc(sizeof(int));
  			*temp = *((int *)get_data(token_list,token));
- 			if(!add(&parse_list,(void *)temp))
+ 			if(*temp != 0)
  			{
- 				printf("Error while reading from file");
- 				exit(0);
+	 			if(!add(&parse_list,(void *)temp))
+	 			{
+	 				printf("Error while reading from file");
+	 				exit(0);
+	 			}
+	 			
+	 			if(iter < w_size -1)
+	 				iter++;
+	 			else
+	 			{
+	 				add(&list_of_parses,(void *)parse_list);
+	 				parse_list = NULL;
+	 				iter = 0;
+	 					
+	 			}
  			}
- 			
- 			if(iter < w_size -1)
- 				iter++;
- 			else
- 			{
- 				add(&list_of_parses,(void *)parse_list);
- 				parse_list = NULL;
- 				iter = 0;
- 					
- 			}
- 			
  		} 			
  	}
  

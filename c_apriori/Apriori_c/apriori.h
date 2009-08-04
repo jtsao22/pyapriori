@@ -12,6 +12,14 @@
 #define FALSE 0
 #endif
 
+
+struct Transaction
+{
+	struct node *item_list;
+	int count;
+	
+};
+
 //struct node* apriori(
 
 struct node* parser(char* file_name,int w_size, int d_wind);
