@@ -20,18 +20,20 @@ struct Transaction
 	
 };
 
-struct node* apriori(int minsup, int w_size,
+struct node* apriori(double minsup, int w_size,
 		char *i_file, char *o_file, int d_window, int node_threshold);
 
 struct node* parser(char* file_name,int w_size, int d_wind);
 
-struct node* one_item_sets(struct node* T, double minsup);
+struct node* one_item_sets(struct node* T, double *minsup);
 
 FILE* read_file(char* file_name);
 
 struct node* get_token_list(FILE* fp);
  
 struct node* get_windows(struct node* token_list, int w_size);
+
+int check_inside(int value, struct node *list);
 
 struct node* get_dynamic_windows(struct node* token_list);
 

@@ -12,17 +12,29 @@ extern void _test_free(void* const ptr, const char* file, const int line);
 
 
 
-struct node* apriori(int minsup, int w_size,
+struct node* apriori(double minsup, int w_size,
 		char *i_file, char *o_file, int d_window, int node_threshold)
 {
 	struct node *transaction_list = parser(i_file, w_size,d_window);
-		
-	return transaction_list;
+	
+	struct node *L_1 = one_item_sets(transaction_list,&minsup);
+
+	struct node *L_kminusone_set = L_1;
+	
+	printf("Minsup: %g\n",minsup);
+	
+	int k = 2;
+	struct node *cand_trans_list = NULL;
+	struct node *cand_list_final = NULL;
+	
+	
+	
+	return L_1;
 			
 }			
 
 
-struct node* one_item_sets(struct node* T, double minsup)
+struct node* one_item_sets(struct node* T, double *minsup)
 {
 	struct node *iter = T;
 	struct node *all_trans_list = NULL; 
@@ -37,7 +49,7 @@ struct node* one_item_sets(struct node* T, double minsup)
 			*temp = *((int *)(transaction->data));
 			if(*temp != 0)
 			{
-				if(!add(&all_trans_list,(void *)temp))
+				if(!add(&all_trans_list,(void *)temp,0))
 	 			{
 	 				printf("Error with Memory Allocation");
 	 				exit(0);
@@ -50,7 +62,7 @@ struct node* one_item_sets(struct node* T, double minsup)
 	}
 	
 	/* calculate the finite minsup number out of the percentage and total */ 
-	double minsup_num = minsup * total_num_trans;
+	*minsup = (*minsup) * total_num_trans;
 
 	free_list_of_lists(&T);
 	
@@ -68,22 +80,24 @@ struct node* one_item_sets(struct node* T, double minsup)
 	{
 		if(*((int *)(iter->data)) != item)
 		{
-			if(count >= minsup_num)
+			if(count >= *minsup)
 			{
 				temp = malloc(sizeof(int));
 				*temp = item;
 				if(*temp != 0)
 				{
-					if(!add(&temp_list,(void *)temp))
+					if(!add(&temp_list,(void *)temp,1))
 		 			{
 		 				printf("Error with Memory Allocation");
 		 				exit(0);
 		 			}
 				}
 				
-				add(&item_list,(void *)temp_list);
-				printf("%i with this count: %i\n",item,count);
-				item_list->count = count;
+				if(!add(&item_list,(void *)temp_list,count))
+				{
+					printf("Error with Memory Allocation");
+		 			exit(0);
+				}
 				item = *((int *)(iter->data));
 				count = 1;
 				temp_list = NULL;
@@ -98,20 +112,23 @@ struct node* one_item_sets(struct node* T, double minsup)
 		
 	}
 	/* add last transaction */ 
-	if(count > minsup_num)
+	if(count > *minsup)
 	{
 		temp = malloc(sizeof(int));
 		*temp = item;
 		if(*temp != 0)
 		{
-			if(!add(&temp_list,(void *)temp))
+			if(!add(&temp_list,(void *)temp,1))
  			{
  				printf("Error with Memory Allocation");
  				exit(0);
  			}
 		}
-		add(&item_list,(void *)temp_list);
-		item_list->count = count;
+		if(!add(&item_list,(void *)temp_list,count))
+		{
+			printf("Error with Memory Allocation");
+		 	exit(0);
+		}
 	}
 	
 	
@@ -147,14 +164,11 @@ struct node* parser(char* file_name,int w_size, int d_wind)
 		list_of_parses = get_windows(token_list, w_size);
 		
 	}
-	
 	else
 	{
 		/* get the windows w/dynamic windowing */ 
 		list_of_parses = get_dynamic_windows(token_list);
 	}
-	
-	
 	//sort the list
 	list_of_parses = mergesort(list_of_parses,&compare_lists);
 	
@@ -173,22 +187,21 @@ struct node* parser(char* file_name,int w_size, int d_wind)
 		if(max_window_size < temp)
 			max_window_size = temp;
 		iter = iter->next;	
-		
 	}
 	
 	printf("Average Window Size: ");
-	printf("%i\n",total_window_size/get_len_list((struct node*)(list_of_parses)));
-	
+	if(get_len_list((struct node*)(list_of_parses)) > 0)
+	{
+		printf("%i\n",total_window_size/get_len_list((struct node*)(list_of_parses)));
+	}
 	printf("Max Window Size: ");
 	printf("%i\n",max_window_size);
-
 
 	/*cleanup */ 
 	free_list(&token_list);
 	fclose(fp);
 
 	return list_of_parses;
-
 }
 
 
@@ -201,36 +214,63 @@ struct node* get_windows(struct node* token_list, int w_size)
  	int * temp = NULL;
  	struct node *parse_list = NULL;
  	struct node *list_of_parses = NULL;
- 	for(k; k < get_len_list(token_list)-w_size + 1; k++)
+ 	struct node *current = token_list;
+ 	struct node *temp_token = NULL;
+ 	int end_point = get_len_list(token_list)-w_size +1;
+
+ 	while(current != NULL && k < end_point)
  	{ 
- 		for(token = k; token < k + w_size; token++)
+ 		temp_token = current;
+ 		token = k;
+ 		while(temp_token != NULL && token < k + w_size)
  		{
  			temp = (int *)malloc(sizeof(int));
- 			*temp = *((int *)get_data(token_list,token));
+ 			*temp = *((int *)temp_token->data);
  			if(*temp != 0)
  			{
-	 			if(!add(&parse_list,(void *)temp))
-	 			{
-	 				printf("Error while reading from file");
-	 				exit(0);
-	 			}
-	 			
-	 			if(iter < w_size -1)
+ 				/* this check_inside function checks if *temp is in side 
+ 				 * parse_list by parsing through the list. This means we
+ 				 * assume a fairly small window size for performance */ 
+ 				if(!check_inside(*temp, parse_list))
+ 				{
+		 			if(!add(&parse_list,(void *)temp,1))
+		 			{
+		 				printf("Error while reading from file");
+		 				exit(0);
+		 			}
+		 		
+ 				}
+				if(iter < w_size -1)
 	 				iter++;
 	 			else
 	 			{
 	 				parse_list = mergesort(parse_list,&compare_ints);
-	 				add(&list_of_parses,(void *)parse_list);
+	 				add(&list_of_parses,(void *)parse_list,1);
 	 				parse_list = NULL;
 	 				iter = 0;
 	 					
 	 			}
+	 			temp_token = temp_token->next;
+	 			token++;
  			}
- 		} 			
+ 		} 	
+ 		current = current->next;
+ 		k++;
+ 				
  	}
- 
  	return list_of_parses;
-  	
+}
+
+int check_inside(int value, struct node *list)
+{
+	while(list != NULL)
+	{
+		if(*((int *)(list->data)) == value)
+			return TRUE;
+		list = list->next;
+	}
+	
+	return FALSE;
 }
 
 struct node* get_dynamic_windows(struct node* token_list)
@@ -244,7 +284,7 @@ struct node* get_dynamic_windows(struct node* token_list)
 	{
 		temp = (int *)malloc(sizeof(int));
 		*temp = *((int *)start_t->data);
-		if(!add(&parse_list,(void *)temp))
+		if(!add(&parse_list,(void *)temp,1))
 		{
 			printf("Error while reading from file");
 			exit(0);
@@ -255,7 +295,11 @@ struct node* get_dynamic_windows(struct node* token_list)
 			if(*((int *)token->data) == *((int *)start_t->data))
 			{
 				parse_list = mergesort(parse_list,&compare_ints);
-				add(&list_of_parses,(void *)parse_list);
+				if(!add(&list_of_parses,(void *)parse_list,1))
+				{
+					printf("Error with Memory Allocation");
+		 			exit(0);
+				}
 				parse_list = NULL;
 				break;
 			}
@@ -263,7 +307,7 @@ struct node* get_dynamic_windows(struct node* token_list)
 			{
 				temp = (int *)malloc(sizeof(int));
 				*temp = *((int *)token->data);
-				if(!add(&parse_list,(void *)temp))
+				if(!add(&parse_list,(void *)temp,1))
 				{
 					printf("Error while reading from file");
 					exit(0);
@@ -276,7 +320,11 @@ struct node* get_dynamic_windows(struct node* token_list)
 			if(parse_list != NULL)
 			{
 				parse_list = mergesort(parse_list,&compare_ints);
-				add(&list_of_parses,(void *)parse_list);
+				if(!add(&list_of_parses,(void *)parse_list,1))
+				{
+					printf("Error with Memory Allocation");
+		 			exit(0);
+				}
 			}
 			parse_list = NULL;
 		}	
@@ -301,7 +349,7 @@ struct node* get_token_list(FILE* fp)
 		{	
 			temp = malloc(sizeof(int));
 			*temp = atoi(s);
-			if(!add(&head,(void *) temp))
+			if(!add(&head,(void *) temp,1))
 			{
 				printf("Error while reading from file");
 				exit(1);

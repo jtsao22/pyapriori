@@ -19,7 +19,7 @@ struct node
 
 
 
-int add(struct node **n, void* d);
+int add(struct node **n, void* d, int count);
 void print_nodes(struct node *n);
 int get_len_list(struct node *n);
 void *get_data(struct node *n, int index);

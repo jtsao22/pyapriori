@@ -41,47 +41,56 @@ void print_lists(struct node *n)
 
 void test_apriori(void **state)
 {
-	struct node *freq_list = apriori(.03,3,"test.dat", "output.dat",FALSE,3);	
+	struct node *freq_list = apriori(.03,3,"test3.dat", "output.dat",FALSE,3);	
 	
 	free_list_of_lists(&freq_list);
 }
 
 void test_one_item_sets(void **state)
 {
+	/* test file with 1 2 3 4 5 2 3 4 5 6 1 2 3 4 5 2 3 4 5 6 7 8 9 1 2 3 */ 
 	struct node *trans_list = parser("test3.dat",3,FALSE);
-	print_lists(trans_list);
-	struct node *final_list = one_item_sets(trans_list, .03);
-	print_lists(final_list);
-	
+	double minsup = .03;
+	struct node *final_list = one_item_sets(trans_list, &minsup);
+	assert_true(minsup == 0.72);
 	struct node *iter = final_list;
-	assert_int_equal(*((int *)(get_data((struct node *)(get_data(final_list,0)),0))),1);
+	assert_int_equal(*((int *)(get_data((struct node *)(
+			get_data(final_list,0)),0))),1);
+	assert_int_equal(iter->count,7);
+	iter = iter->next;
+	assert_int_equal(*((int *)(get_data((struct node *)(
+			get_data(final_list,1)),0))),2);
+	assert_int_equal(iter->count,13);
+	iter = iter->next;
+	assert_int_equal(*((int *)(get_data((struct node *)(
+			get_data(iter,0)),0))),3);
+	assert_int_equal(iter->count,13);
+	iter = iter->next;
+	assert_int_equal(*((int *)(get_data((struct node *)(
+			get_data(iter,0)),0))),4);
+	assert_int_equal(iter->count,12);
+	iter = iter->next;
+	assert_int_equal(*((int *)(get_data((struct node *)(
+			get_data(iter,0)),0))),5);
+	assert_int_equal(iter->count,12);
+	iter = iter->next;
+	assert_int_equal(*((int *)(get_data((struct node *)(
+			get_data(iter,0)),0))),6);
+	assert_int_equal(iter->count,6);
+	iter = iter->next;
+	assert_int_equal(*((int *)(get_data((struct node *)(
+			get_data(iter,0)),0))),7);
 	assert_int_equal(iter->count,3);
 	iter = iter->next;
-	assert_int_equal(*((int *)(get_data((struct node *)(get_data(final_list,1)),0))),2);
-	printf("%i",iter->count);
-//	assert_int_equal(iter->count,13);
-//	iter = iter->next;
-//	assert_int_equal(*((int *)(get_data((struct node *)(get_data(iter,0)),0))),3);
-//	assert_int_equal(iter->count,3);
-//	iter = iter->next;
-//	assert_int_equal(*((int *)(get_data((struct node *)(get_data(iter,0)),0))),4);
-//	assert_int_equal(iter->count,3);
-//	iter = iter->next;
-//	assert_int_equal(*((int *)(get_data((struct node *)(get_data(iter,0)),0))),5);
-//	assert_int_equal(iter->count,3);
-//	iter = iter->next;
-//	assert_int_equal(*((int *)(get_data((struct node *)(get_data(iter,0)),0))),6);
-//	assert_int_equal(iter->count,3);
-//	iter = iter->next;
-//	assert_int_equal(*((int *)(get_data((struct node *)(get_data(iter,0)),0))),7);
-//	assert_int_equal(iter->count,3);
-//	iter = iter->next;
-//	assert_int_equal(*((int *)(get_data((struct node *)(get_data(iter,0)),0))),8);
-//	assert_int_equal(iter->count,3);
-//	iter = iter->next;
-//	assert_int_equal(*((int *)(get_data((struct node *)(get_data(iter,0)),0))),9);
-//	assert_int_equal(iter->count,3);
-//	iter = iter->next;
+	assert_int_equal(*((int *)(get_data((struct node *)(
+			get_data(iter,0)),0))),8);
+	assert_int_equal(iter->count,3);
+	iter = iter->next;
+	assert_int_equal(*((int *)(get_data((struct node *)(
+			get_data(iter,0)),0))),9);
+	assert_int_equal(iter->count,3);
+	iter = iter->next;
+	assert_true(iter==NULL);
 
 	free_list_of_lists(&final_list);
 	
@@ -93,8 +102,12 @@ void test_one_item_sets(void **state)
 void test_parser(void **state) 
 {
 	struct node *list = parser("test.dat",3,FALSE);
+	assert_true(list != NULL);
 	free_list_of_lists(&list);
-	
+	/* test empty file */ 
+	struct node *list1 = parser("test2.dat",3,FALSE);
+	assert_true(list1 == NULL);
+	free_list_of_lists(&list1);
 }
 
 void test_get_token_list(void **state)
@@ -110,6 +123,11 @@ void test_get_token_list(void **state)
 	assert_true(*((int *)get_data(check,3))==4);
 	free_list(&check);
 	fclose(f);
+	
+	FILE *g = read_file("test2.dat");
+	check = get_token_list(g);
+	assert_true(check==NULL);
+	fclose(g);
 
 }
 
@@ -133,7 +151,7 @@ void test_get_len_list(void **state)
 	free_list(&check);
 	f = read_file("test1.dat");
 	check = get_token_list(f);
-	assert_int_equal(get_len_list(check),5);
+	assert_int_equal(get_len_list(check),6);
 	free_list(&check);
 		
 }
@@ -143,16 +161,50 @@ void test_get_windows(void **state)
 	FILE *f = read_file("test.dat");
 	struct node* check = get_token_list(f);
 	struct node* list_of_parses = get_windows(check,3);
-	assert_int_equal(*((int *)(get_data((struct node *)(get_data(list_of_parses,0)),0))),1);
-	assert_int_equal(*((int *)(get_data((struct node *)(get_data(list_of_parses,0)),1))),2);
-	assert_int_equal(*((int *)(get_data((struct node *)(get_data(list_of_parses,0)),2))),3);
-	assert_int_equal(*((int *)(get_data((struct node *)(get_data(list_of_parses,1)),0))),2);
-	assert_int_equal(*((int *)(get_data((struct node *)(get_data(list_of_parses,1)),1))),3);
-	assert_int_equal(*((int *)(get_data((struct node *)(get_data(list_of_parses,1)),2))),4);
+	assert_int_equal(*((int *)(get_data((struct node *)(
+			get_data(list_of_parses,0)),0))),1);
+	assert_int_equal(*((int *)(get_data((struct node *)(
+			get_data(list_of_parses,0)),1))),2);
+	assert_int_equal(*((int *)(get_data((struct node *)(
+			get_data(list_of_parses,0)),2))),3);
+	assert_int_equal(*((int *)(get_data((struct node *)(
+			get_data(list_of_parses,1)),0))),2);
+	assert_int_equal(*((int *)(get_data((struct node *)(
+			get_data(list_of_parses,1)),1))),3);
+	assert_int_equal(*((int *)(get_data((struct node *)(
+			get_data(list_of_parses,1)),2))),4);
 	free_list(&check);
 	free_list_of_lists(&list_of_parses);
 	fclose(f);
 	
+	f = read_file("test2.dat");
+	check = get_token_list(f);
+	assert_true(check==NULL);
+	list_of_parses = get_windows(check,3);
+	assert_true(list_of_parses==NULL);
+	fclose(f);
+		
+	FILE *h = read_file("test1.dat");
+	check = get_token_list(h);
+	list_of_parses = get_windows(check,3);
+	print_lists(list_of_parses);
+	print_nodes(check);
+	free_list(&check);
+	free_list_of_lists(&list_of_parses);
+//	fclose(h);
+	
+}
+
+void test_check_inside(void **state)
+{
+	struct node *parse_list = NULL;
+	int *temp = malloc(sizeof(int));
+	*temp = 3;
+	add(&parse_list,(void *)temp,1);
+	
+	assert_true(check_inside(3,parse_list));
+	assert_false(check_inside(4,parse_list));
+	free_list(&parse_list);
 }
 
 void test_get_dynamic_windows(void **state)
@@ -197,16 +249,16 @@ void test_merge_sort(void **state)
 	struct node *test_2 = NULL;
 	int * temp = malloc(sizeof(int));
 	*temp = 1;
-	add(&test,(void *) temp);
+	add(&test,(void *) temp,1);
 	//test mergesort on one item (ints)
 	mergesort(test,&compare_ints);
 	assert_int_equal(*((int *)get_data(test,0)),1);
 	temp = malloc(sizeof(int));
 	*temp = 4;
-	add(&test,(void *)temp);
+	add(&test,(void *)temp,1);
 	temp = malloc(sizeof(int));
 	*temp = 2;
-	add(&test,(void *)temp);
+	add(&test,(void *)temp,1);
 	//test mergesort on three items (ints)
 	mergesort(test,&compare_ints);
 	assert_int_equal(*((int *)get_data(test,0)),1);
@@ -214,10 +266,10 @@ void test_merge_sort(void **state)
 	assert_int_equal(*((int *)get_data(test,2)),4);
 	temp = malloc(sizeof(int));
 	*temp = 55;
-	add(&test,(void *)temp);
+	add(&test,(void *)temp,1);
 	temp = malloc(sizeof(int));
 	*temp = 3;
-	add(&test,(void *)temp);
+	add(&test,(void *)temp,1);
 	//mergesort on 5 items (ints)
 	mergesort(test,&compare_ints);
 	assert_int_equal(*((int *)get_data(test,0)),1);
@@ -226,18 +278,18 @@ void test_merge_sort(void **state)
 	assert_int_equal(*((int *)get_data(test,3)),4);
 	assert_int_equal(*((int *)get_data(test,4)),55);
 	//test mergesort on lists
-	add(&test_2,(void *)test);
+	add(&test_2,(void *)test,1);
 	test = NULL;
 	temp = malloc(sizeof(int));
 	*temp = 1;
-	add(&test,(void *) temp);
+	add(&test,(void *) temp,1);
 	temp = malloc(sizeof(int));
 	*temp = 2;
-	add(&test,(void *)temp);
+	add(&test,(void *)temp,1);
 	temp = malloc(sizeof(int));
 	*temp = 5;
-	add(&test,(void *)temp);
-	add(&test_2,(void *)test);
+	add(&test,(void *)temp,1);
+	add(&test_2,(void *)test,1);
 	test_2 = mergesort(test_2,&compare_lists);
 	
 	print_lists(test_2);
@@ -253,10 +305,10 @@ void test_free_list(void **state)
 	struct node *test = NULL;
 	int *temp = malloc(sizeof(int));
 	*temp = 4;
-	add(&test,(void *)temp);
+	add(&test,(void *)temp,1);
 	temp = malloc(sizeof(int));
 	*temp = 2;
-	add(&test,(void *)temp);
+	add(&test,(void *)temp,1);
 	assert_int_equal(*((int *)get_data(test,0)),4);
 	assert_int_equal(*((int *)get_data(test,1)),2);
 	free_list(&test);
@@ -270,23 +322,23 @@ void test_free_list_of_lists(void **state)
 	struct node *test_2 = NULL;
 	int *temp = malloc(sizeof(int));
 	*temp = 4;
-	add(&test,(void *)temp);
+	add(&test,(void *)temp,1);
 	
 	temp = malloc(sizeof(int));
 	*temp = 2;
-	add(&test,(void *)temp);
+	add(&test,(void *)temp,1);
 	
 	assert_int_equal(*((int *)get_data(test,0)),4);
 	assert_int_equal(*((int *)get_data(test,1)),2);
 
-	add(&test_2, (void *)test);
+	add(&test_2, (void *)test,1);
 	temp = NULL;
 	temp = malloc(sizeof(int));
 	*temp = 3;
-	add(&test,(void *)temp);
+	add(&test,(void *)temp,1);
 	temp = malloc(sizeof(int));
 	*temp = 4;
-	add(&test,(void *)temp);
+	add(&test,(void *)temp,1);
 	free_list_of_lists(&test_2);	
 	
 }
@@ -297,24 +349,24 @@ void test_compare_lists(void **state)
 	struct node *test_2 = NULL;
 	int *temp = malloc(sizeof(int));
 	*temp = 2;
-	add(&test_1,(void *)temp);
+	add(&test_1,(void *)temp,1);
 	temp = malloc(sizeof(int));
 	*temp = 4;
-	add(&test_1,(void *)temp);
+	add(&test_1,(void *)temp,1);
 	temp = malloc(sizeof(int));
 	*temp = 1;
-	add(&test_2,(void *)temp);
+	add(&test_2,(void *)temp,1);
 	temp = malloc(sizeof(int));
 	*temp = 2;
-	add(&test_2,(void *)temp);
+	add(&test_2,(void *)temp,1);
 	assert_int_equal(compare_lists((void *)test_1,(void *)test_2),1);
 	assert_int_equal(compare_lists((void *)test_2,(void *)test_1),-1);
 	temp = malloc(sizeof(int));
 	*temp = 2;
-	add(&test_2,(void *)temp);
+	add(&test_2,(void *)temp,1);
 	temp = malloc(sizeof(int));
 	*temp = 5;
-	add(&test_2,(void *)temp);
+	add(&test_2,(void *)temp,1);
 	assert_int_equal(compare_lists((void *)test_1,(void *)test_2),1);
 	assert_int_equal(compare_lists((void *)test_1,(void *)test_1),0);
 	assert_int_equal(compare_lists((void *)test_2,(void *)test_2),0);
@@ -339,7 +391,8 @@ int main(int argc, char* argv[])
 		unit_test(test_compare_lists),
 		unit_test(test_get_dynamic_windows),
 		unit_test(test_apriori),
-		unit_test(test_one_item_sets)
+		unit_test(test_one_item_sets),
+		unit_test(test_check_inside)
 		
 	};
 	return run_tests(tests);

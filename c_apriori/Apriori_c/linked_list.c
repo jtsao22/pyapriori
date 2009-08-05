@@ -20,7 +20,7 @@ void mock_assert(const int result, const char* expression, const char *file,
                  const int line);
 
 
-int add(struct node **n, void* d)
+int add(struct node **n, void* d, int count)
 {
 	//add a node to linked list
 	
@@ -32,7 +32,7 @@ int add(struct node **n, void* d)
 			return 0;
 		}
 		(*n)->next = NULL;
-		(*n)->count = 0;
+		(*n)->count = count;
 		(*n)->data = d;	
 		
 	}
@@ -51,7 +51,7 @@ int add(struct node **n, void* d)
 		}
 		temp->next->next = NULL;
 		temp->next->data = d;	
-		temp->next->count = 0;
+		temp->next->count = count;
 	}
 	return 1;
 	
