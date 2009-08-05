@@ -211,6 +211,7 @@ struct node* get_windows(struct node* token_list, int w_size)
  	int k = 0;
  	int token = 0;
  	int iter = 0;
+ 	int value = 0;
  	int * temp = NULL;
  	struct node *parse_list = NULL;
  	struct node *list_of_parses = NULL;
@@ -224,35 +225,35 @@ struct node* get_windows(struct node* token_list, int w_size)
  		token = k;
  		while(temp_token != NULL && token < k + w_size)
  		{
- 			temp = (int *)malloc(sizeof(int));
- 			*temp = *((int *)temp_token->data);
- 			if(*temp != 0)
- 			{
- 				/* this check_inside function checks if *temp is in side 
- 				 * parse_list by parsing through the list. This means we
- 				 * assume a fairly small window size for performance */ 
- 				if(!check_inside(*temp, parse_list))
- 				{
-		 			if(!add(&parse_list,(void *)temp,1))
-		 			{
-		 				printf("Error while reading from file");
-		 				exit(0);
-		 			}
-		 		
- 				}
-				if(iter < w_size -1)
-	 				iter++;
-	 			else
+ 			value = *((int *)temp_token->data);
+		
+			/* this check_inside function checks if *temp is in side 
+			 * parse_list by parsing through the list. This means we
+			 * assume a fairly small window size for performance */ 
+			if(!check_inside(value, parse_list))
+			{
+				temp = (int *)malloc(sizeof(int));
+				*temp = value;
+	 			if(!add(&parse_list,(void *)temp,1))
 	 			{
-	 				parse_list = mergesort(parse_list,&compare_ints);
-	 				add(&list_of_parses,(void *)parse_list,1);
-	 				parse_list = NULL;
-	 				iter = 0;
-	 					
+	 				printf("Error while reading from file");
+	 				exit(0);
 	 			}
-	 			temp_token = temp_token->next;
-	 			token++;
+	 		
+			}
+		
+			if(iter < w_size -1)
+ 				iter++;
+ 			else
+ 			{
+ 				parse_list = mergesort(parse_list,&compare_ints);
+ 				add(&list_of_parses,(void *)parse_list,1);
+ 				parse_list = NULL;
+ 				iter = 0;					
  			}
+ 			temp_token = temp_token->next;
+ 			token++;
+ 			
  		} 	
  		current = current->next;
  		k++;

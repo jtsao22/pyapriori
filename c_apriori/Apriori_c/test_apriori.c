@@ -191,7 +191,7 @@ void test_get_windows(void **state)
 	print_nodes(check);
 	free_list(&check);
 	free_list_of_lists(&list_of_parses);
-//	fclose(h);
+	fclose(h);
 	
 }
 
