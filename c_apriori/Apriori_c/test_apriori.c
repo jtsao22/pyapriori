@@ -39,6 +39,57 @@ void print_lists(struct node *n)
 	}
 }
 
+void test_apriori(void **state)
+{
+	struct node *freq_list = apriori(.03,3,"test.dat", "output.dat",FALSE,3);	
+	
+	free_list_of_lists(&freq_list);
+}
+
+void test_one_item_sets(void **state)
+{
+	struct node *trans_list = parser("test3.dat",3,FALSE);
+	print_lists(trans_list);
+	struct node *final_list = one_item_sets(trans_list, .03);
+	print_lists(final_list);
+	
+	struct node *iter = final_list;
+	assert_int_equal(*((int *)(get_data((struct node *)(get_data(final_list,0)),0))),1);
+	assert_int_equal(iter->count,3);
+	iter = iter->next;
+	assert_int_equal(*((int *)(get_data((struct node *)(get_data(final_list,1)),0))),2);
+	printf("%i",iter->count);
+//	assert_int_equal(iter->count,13);
+//	iter = iter->next;
+//	assert_int_equal(*((int *)(get_data((struct node *)(get_data(iter,0)),0))),3);
+//	assert_int_equal(iter->count,3);
+//	iter = iter->next;
+//	assert_int_equal(*((int *)(get_data((struct node *)(get_data(iter,0)),0))),4);
+//	assert_int_equal(iter->count,3);
+//	iter = iter->next;
+//	assert_int_equal(*((int *)(get_data((struct node *)(get_data(iter,0)),0))),5);
+//	assert_int_equal(iter->count,3);
+//	iter = iter->next;
+//	assert_int_equal(*((int *)(get_data((struct node *)(get_data(iter,0)),0))),6);
+//	assert_int_equal(iter->count,3);
+//	iter = iter->next;
+//	assert_int_equal(*((int *)(get_data((struct node *)(get_data(iter,0)),0))),7);
+//	assert_int_equal(iter->count,3);
+//	iter = iter->next;
+//	assert_int_equal(*((int *)(get_data((struct node *)(get_data(iter,0)),0))),8);
+//	assert_int_equal(iter->count,3);
+//	iter = iter->next;
+//	assert_int_equal(*((int *)(get_data((struct node *)(get_data(iter,0)),0))),9);
+//	assert_int_equal(iter->count,3);
+//	iter = iter->next;
+
+	free_list_of_lists(&final_list);
+	
+	
+}
+
+
+
 void test_parser(void **state) 
 {
 	struct node *list = parser("test.dat",3,FALSE);
@@ -286,7 +337,9 @@ int main(int argc, char* argv[])
 		unit_test(test_get_data),
 		unit_test(test_merge_sort),
 		unit_test(test_compare_lists),
-		unit_test(test_get_dynamic_windows)
+		unit_test(test_get_dynamic_windows),
+		unit_test(test_apriori),
+		unit_test(test_one_item_sets)
 		
 	};
 	return run_tests(tests);

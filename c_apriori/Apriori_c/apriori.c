@@ -11,6 +11,123 @@ extern void _test_free(void* const ptr, const char* file, const int line);
 #define free(ptr) _test_free(ptr, __FILE__, __LINE__)
 
 
+
+struct node* apriori(int minsup, int w_size,
+		char *i_file, char *o_file, int d_window, int node_threshold)
+{
+	struct node *transaction_list = parser(i_file, w_size,d_window);
+		
+	return transaction_list;
+			
+}			
+
+
+struct node* one_item_sets(struct node* T, double minsup)
+{
+	struct node *iter = T;
+	struct node *all_trans_list = NULL; 
+	int total_num_trans = 0;
+	int *temp = NULL;
+	while(iter != NULL)
+	{
+		struct node *transaction = (struct node*)iter->data;
+		while(transaction != NULL)
+		{
+			temp = malloc(sizeof(int));
+			*temp = *((int *)(transaction->data));
+			if(*temp != 0)
+			{
+				if(!add(&all_trans_list,(void *)temp))
+	 			{
+	 				printf("Error with Memory Allocation");
+	 				exit(0);
+	 			}
+			}
+			transaction = transaction->next;
+		}
+		total_num_trans++;
+		iter = iter->next;
+	}
+	
+	/* calculate the finite minsup number out of the percentage and total */ 
+	double minsup_num = minsup * total_num_trans;
+
+	free_list_of_lists(&T);
+	
+	all_trans_list = mergesort(all_trans_list,&compare_ints);
+	
+	/* set iterator for all_trans_list and initialize variables */ 
+	iter = all_trans_list;
+	
+	struct node *item_list = NULL;
+	struct node *temp_list = NULL;
+	temp = NULL;
+	int item = *((int *)(iter->data));
+	int count = 0;
+	while(iter != NULL)
+	{
+		if(*((int *)(iter->data)) != item)
+		{
+			if(count >= minsup_num)
+			{
+				temp = malloc(sizeof(int));
+				*temp = item;
+				if(*temp != 0)
+				{
+					if(!add(&temp_list,(void *)temp))
+		 			{
+		 				printf("Error with Memory Allocation");
+		 				exit(0);
+		 			}
+				}
+				
+				add(&item_list,(void *)temp_list);
+				printf("%i with this count: %i\n",item,count);
+				item_list->count = count;
+				item = *((int *)(iter->data));
+				count = 1;
+				temp_list = NULL;
+			}
+
+		}
+		else
+		{
+			count++;
+		}
+		iter = iter->next;
+		
+	}
+	/* add last transaction */ 
+	if(count > minsup_num)
+	{
+		temp = malloc(sizeof(int));
+		*temp = item;
+		if(*temp != 0)
+		{
+			if(!add(&temp_list,(void *)temp))
+ 			{
+ 				printf("Error with Memory Allocation");
+ 				exit(0);
+ 			}
+		}
+		add(&item_list,(void *)temp_list);
+		item_list->count = count;
+	}
+	
+	
+	free_list(&all_trans_list);
+	
+	
+	return item_list;
+}
+
+
+
+
+
+
+
+
 struct node* parser(char* file_name,int w_size, int d_wind)
 {
 	struct node* list_of_parses = NULL;
@@ -44,8 +161,6 @@ struct node* parser(char* file_name,int w_size, int d_wind)
 	/* find average window size and max window size */ 
 
 	struct node* iter = list_of_parses;
-	
-	struct Transaction *transaction_list = NULL;
 	
 	int total_window_size = 0;
 	int max_window_size = 0;
@@ -104,6 +219,7 @@ struct node* get_windows(struct node* token_list, int w_size)
 	 				iter++;
 	 			else
 	 			{
+	 				parse_list = mergesort(parse_list,&compare_ints);
 	 				add(&list_of_parses,(void *)parse_list);
 	 				parse_list = NULL;
 	 				iter = 0;

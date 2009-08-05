@@ -20,9 +20,12 @@ struct Transaction
 	
 };
 
-//struct node* apriori(
+struct node* apriori(int minsup, int w_size,
+		char *i_file, char *o_file, int d_window, int node_threshold);
 
 struct node* parser(char* file_name,int w_size, int d_wind);
+
+struct node* one_item_sets(struct node* T, double minsup);
 
 FILE* read_file(char* file_name);
 
