@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <string.h>
-
+#include "hash_map.h"
 #include "apriori.h"
 #include "linked_list.h"
 

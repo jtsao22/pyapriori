@@ -7,6 +7,7 @@
 #include <assert.h>
 #include "apriori.h"
 #include "linked_list.h"
+#include "hash_map.h"
 
 
 extern void* _test_malloc(const size_t size, const char* file, const int line);
@@ -113,7 +114,7 @@ void test_parser(void **state)
 void test_get_token_list(void **state)
 {
 	// Test file w/ 1 2 3 4 on same line
-	
+	FILE *g;
 	FILE *f = read_file("test.dat");
 	
 	struct node* check = get_token_list(f);
@@ -124,16 +125,12 @@ void test_get_token_list(void **state)
 	free_list(&check);
 	fclose(f);
 	
-	FILE *g = read_file("test2.dat");
+	g = read_file("test2.dat");
 	check = get_token_list(g);
 	assert_true(check==NULL);
 	fclose(g);
 
 }
-
-
-
-
 
 void test_read_file(void **state) 
 {
@@ -374,6 +371,28 @@ void test_compare_lists(void **state)
 	free_list(&test_2);
 }
 
+void test_hash(void **state)
+{
+	uint32_t a;
+	uint32_t b;
+	a = 22;
+	b = hash(a);
+//	assert_true(b == 1970502188);
+	
+}
+
+void test_insert_in_hash(void **state)
+{
+	uint32_t a;
+	uint32_t b;
+	struct hash_map hm;
+	a = 22;
+	int *temp = malloc(sizeof(int));
+	*temp = 4;
+	free(temp);
+}
+
+
 
 int main(int argc, char* argv[]) 
 {
@@ -392,7 +411,8 @@ int main(int argc, char* argv[])
 		unit_test(test_get_dynamic_windows),
 		unit_test(test_apriori),
 		unit_test(test_one_item_sets),
-		unit_test(test_check_inside)
+		unit_test(test_check_inside),
+		unit_test(test_hash)
 		
 	};
 	return run_tests(tests);
