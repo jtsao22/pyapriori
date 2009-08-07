@@ -12,6 +12,7 @@
 #define FALSE 0
 #endif
 
+#include <stdlib.h>
 
 struct Transaction
 {

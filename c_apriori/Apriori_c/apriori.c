@@ -3,6 +3,7 @@
 #include "hash_map.h"
 #include "apriori.h"
 #include "linked_list.h"
+#include "hash_tree.h"
 
 
 extern void* _test_malloc(const size_t size, const char* file, const int line);
@@ -26,7 +27,19 @@ struct node* apriori(double minsup, int w_size,
 	int k = 2;
 	struct node *cand_trans_list = NULL;
 	struct node *cand_list_final = NULL;
-	
+
+	struct hash_map *hm = malloc(sizeof(struct hash_map));
+	initialize_hash_map(hm);
+	int *temp = malloc(sizeof(int));
+	*temp = 4;
+	insert_in_hash(hm,22,(void *)temp);
+	temp = malloc(sizeof(int));
+	*temp = 5;
+	insert_in_hash(hm,22,(void *)temp);
+//	void *data = get_data_from_hash(hm,22);
+//	printf("%i\n",*((int *)(data)));
+	free_hash_map(hm);
+	//free(temp);
 	
 	
 	return L_1;

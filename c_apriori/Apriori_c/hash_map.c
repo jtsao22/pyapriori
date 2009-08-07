@@ -1,4 +1,16 @@
+#include <stdlib.h>
+#include <stdarg.h>
+#include <stddef.h>
+#include <setjmp.h>
+#include <cmockery.h>
 #include "hash_map.h"
+#include "linked_list.h"
+#include "hash_tree.h"
+
+extern void* _test_malloc(const size_t size, const char* file, const int line);
+extern void _test_free(void* const ptr, const char* file, const int line);
+#define malloc(size) _test_malloc(size, __FILE__, __LINE__)
+#define free(ptr) _test_free(ptr, __FILE__, __LINE__)
 
 #define mix(a,b,c) \
 { \
@@ -62,15 +74,44 @@ int hash(uint32_t num)
 	return hashword(&num,1,22)%100; /* NOTE: 22 is an arbitrary value */ 
 }
 
-void initialize_hash_map(struct hash_map hm)
-
-void insert_in_hash(struct hash_map *hash_table, uint32_t num,void *data)
+void initialize_hash_map(struct hash_map *hm)
 {
-	uint32_t converted = hash(num);
-	if(hash_table[converted] == NULL)
+	int k;
+	hm->size = 100;
+	hm->hash_table = malloc(hm->size*sizeof(struct node));
+	for(k = 0; k < hm->size; k++)
+		hm->hash_table[k] = NULL;
+	hm->count = 0;
+}
+
+void free_hash_map(struct hash_map *hm)
+{
+	int k;
+	for(k= 0; k < hm->size; k++)
+		free_list(&hm->hash_table[k]);
+	free(hm->hash_table);
+	free(hm);
+}
+
+void insert_in_hash(struct hash_map *hm, uint32_t num,void *data)
+{
+	uint32_t converted = hash(num)%100;
+	printf("Converted num: %i\n",converted);
+	struct hash_tree_node *ht_node = malloc(sizeof(struct hash_tree_node));
+	ht_node->key = num;
+	ht_node->children = data;
+	ht_node->count = 1;
+	if(!add(&hm->hash_table[converted],(void *) ht_node,1))
 	{
-		hash_table[converted] = malloc(sizeof(struct node));
-		
+		exit(0);
 	}
+	hm->count++;
+
+}
+
+void *get_data_from_hash(struct hash_map *hm, uint32_t num)
+{
+	uint32_t converted = hash(num)%100;
+	return hm->hash_table[converted];
 }
 

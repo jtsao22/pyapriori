@@ -8,6 +8,7 @@
 #include "apriori.h"
 #include "linked_list.h"
 #include "hash_map.h"
+#include "hash_tree.h"
 
 
 extern void* _test_malloc(const size_t size, const char* file, const int line);
@@ -383,14 +384,21 @@ void test_hash(void **state)
 
 void test_insert_in_hash(void **state)
 {
-	uint32_t a;
-	uint32_t b;
-	struct hash_map hm;
-	a = 22;
+
+	struct hash_map *hm = malloc(sizeof(struct hash_map));
+	initialize_hash_map(hm);
 	int *temp = malloc(sizeof(int));
 	*temp = 4;
+	struct hash_tree_node *ht_node = malloc(sizeof(struct hash_tree_node));
+	ht_node->key = 2;
+	ht_node->children = (void *)temp;
+	ht_node->count = 1;
+	
+	insert_in_hash(hm,2,(void *)ht_node);
+	assert_int_equal(*((int *)((struct hash_tree_node *)(hm->hash_table[2]->data))->children),4);
 	free(temp);
 }
+
 
 
 
