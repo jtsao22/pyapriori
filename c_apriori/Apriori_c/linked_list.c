@@ -4,12 +4,12 @@
 #include <string.h>
 #include "linked_list.h"
 
-
+#ifdef CMOCKERY
 extern void* _test_malloc(const size_t size, const char* file, const int line);
 extern void _test_free(void* const ptr, const char* file, const int line);
 #define malloc(size) _test_malloc(size, __FILE__, __LINE__)
 #define free(ptr) _test_free(ptr, __FILE__, __LINE__)
-
+#endif 
 // Redirect assert to mock_assert() so assertions can be caught by cmockery.
 #ifdef assert
 #undef assert
@@ -60,17 +60,25 @@ int add(struct node **n, void* d, int count)
 
 
 
-void free_list(struct node **n)
+//void free_list(struct node **n,void (*free_funct)(void *))
+
+
+void free_list(struct node **n,void (*free_funct)(void *,void *))
 {
 	struct node *current;
 	struct node *next;
 	for(current = *n; current != NULL; current = next)
 	{
 		next = current->next; 
-		free(current->data);
+		(*free_funct)(current->data,NULL);
 		free(current);
 	}
 
+}
+
+void free_ints(void *data, void *extra_free)
+{
+	free(data);
 }
 
 void free_list_of_lists(struct node **n)
@@ -81,10 +89,15 @@ void free_list_of_lists(struct node **n)
 	{
 		next = current->next;
 		//struct node** temp = ;
-		free_list(((struct node**)(&current->data)));
+		free_list(((struct node**)(&current->data)),&free_ints);
 		free(current);
 	}		
 }
+
+//void free_list_hash_tree_node(void *
+
+
+
 
 int get_len_list(struct node *n)
 {

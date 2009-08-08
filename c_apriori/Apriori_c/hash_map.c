@@ -7,10 +7,12 @@
 #include "linked_list.h"
 #include "hash_tree.h"
 
+#ifdef CMOCKERY
 extern void* _test_malloc(const size_t size, const char* file, const int line);
 extern void _test_free(void* const ptr, const char* file, const int line);
 #define malloc(size) _test_malloc(size, __FILE__, __LINE__)
 #define free(ptr) _test_free(ptr, __FILE__, __LINE__)
+#endif 
 
 #define mix(a,b,c) \
 { \
@@ -88,10 +90,13 @@ void free_hash_map(struct hash_map *hm)
 {
 	int k;
 	for(k= 0; k < hm->size; k++)
-		free_list(&hm->hash_table[k]);
+		free_list(&hm->hash_table[k],&free_hash_tree_node);
+	
 	free(hm->hash_table);
 	free(hm);
 }
+
+
 
 void insert_in_hash(struct hash_map *hm, uint32_t num,void *data)
 {

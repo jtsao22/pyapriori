@@ -23,7 +23,10 @@ int add(struct node **n, void* d, int count);
 void print_nodes(struct node *n);
 int get_len_list(struct node *n);
 void *get_data(struct node *n, int index);
-void free_list(struct node **n);
+void free_ints(void *data, void *extra_free);
+void free_list(struct node **n,void (*free_funct)(void *,void *));
+
+
 void free_list_of_lists(struct node **n);
 
 struct node *mergesort(struct node *head,int (*cmp)(void *,void *));

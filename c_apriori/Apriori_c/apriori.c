@@ -5,12 +5,12 @@
 #include "linked_list.h"
 #include "hash_tree.h"
 
-
+#ifdef CMOCKERY
 extern void* _test_malloc(const size_t size, const char* file, const int line);
 extern void _test_free(void* const ptr, const char* file, const int line);
 #define malloc(size) _test_malloc(size, __FILE__, __LINE__)
 #define free(ptr) _test_free(ptr, __FILE__, __LINE__)
-
+#endif 
 
 
 struct node* apriori(double minsup, int w_size,
@@ -39,6 +39,7 @@ struct node* apriori(double minsup, int w_size,
 //	void *data = get_data_from_hash(hm,22);
 //	printf("%i\n",*((int *)(data)));
 	free_hash_map(hm);
+	
 	//free(temp);
 	
 	
@@ -143,10 +144,8 @@ struct node* one_item_sets(struct node* T, double *minsup)
 		 	exit(0);
 		}
 	}
-	
-	
-	free_list(&all_trans_list);
-	
+
+	free_list(&all_trans_list,&free_ints);
 	
 	return item_list;
 }
@@ -211,7 +210,7 @@ struct node* parser(char* file_name,int w_size, int d_wind)
 	printf("%i\n",max_window_size);
 
 	/*cleanup */ 
-	free_list(&token_list);
+	free_list(&token_list,&free_ints);
 	fclose(fp);
 
 	return list_of_parses;
