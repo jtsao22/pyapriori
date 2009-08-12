@@ -28,14 +28,14 @@ struct node* apriori(double minsup, int w_size,
 	struct node *cand_trans_list = NULL;
 	struct node *cand_list_final = NULL;
 
-	struct hash_map *hm = malloc(sizeof(struct hash_map));
-	initialize_hash_map(hm);
-	int *temp = malloc(sizeof(int));
-	*temp = 4;
-	insert_in_hash(hm,22,(void *)temp);
-	temp = malloc(sizeof(int));
-	*temp = 5;
-	insert_in_hash(hm,22,(void *)temp);
+	struct hash_map *hm = NULL;
+	initialize_hash_map(&hm);
+//	int *temp = malloc(sizeof(int));
+//	*temp = 4;
+//	insert_in_hash(hm,22,(void *)temp);
+//	temp = malloc(sizeof(int));
+//	*temp = 5;
+//	insert_in_hash(hm,22,(void *)temp);
 //	void *data = get_data_from_hash(hm,22);
 //	printf("%i\n",*((int *)(data)));
 	free_hash_map(hm);

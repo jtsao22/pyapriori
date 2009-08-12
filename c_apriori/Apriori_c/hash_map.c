@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include <setjmp.h>
 #include <cmockery.h>
+#include <stdint.h>
 #include "hash_map.h"
 #include "linked_list.h"
 #include "hash_tree.h"
@@ -71,26 +72,41 @@ uint32_t        initval)         /* the previous hash, or an arbitrary value */
   return c;
 }
 
-int hash(uint32_t num)
+uint32_t hash(uint32_t num)
 {
 	return hashword(&num,1,22)%100; /* NOTE: 22 is an arbitrary value */ 
 }
 
-void initialize_hash_map(struct hash_map *hm)
+void initialize_hash_map(struct hash_map **hm)
 {
 	int k;
-	hm->size = 100;
-	hm->hash_table = malloc(hm->size*sizeof(struct node));
-	for(k = 0; k < hm->size; k++)
-		hm->hash_table[k] = NULL;
-	hm->count = 0;
+	(*hm) = malloc(sizeof(struct hash_map));
+	(*hm)->size = 100;
+	(*hm)->density = 0;
+	(*hm)->hash_table = malloc((*hm)->size*sizeof(struct node));
+	
+	for(k = 0; k < (*hm)->size; k++)
+		(*hm)->hash_table[k] = NULL;
+	
+	(*hm)->count = 0;
 }
 
 void free_hash_map(struct hash_map *hm)
 {
 	int k;
+	struct node *current = NULL;
+	struct node *next = NULL;
 	for(k= 0; k < hm->size; k++)
-		free_list(&hm->hash_table[k],&free_hash_tree_node);
+	{
+		current = hm->hash_table[k];
+		while(current != NULL)
+		{
+			next = current->next;
+			free_hash_tree_node((struct hash_tree_node *)current->data);
+			free(current);
+			current = next;
+		}
+	}
 	
 	free(hm->hash_table);
 	free(hm);
@@ -98,14 +114,10 @@ void free_hash_map(struct hash_map *hm)
 
 
 
-void insert_in_hash(struct hash_map *hm, uint32_t num,void *data)
+void insert_in_hash(struct hash_map *hm, uint32_t num,struct hash_tree_node *ht_node)
 {
 	uint32_t converted = hash(num)%100;
 	printf("Converted num: %i\n",converted);
-	struct hash_tree_node *ht_node = malloc(sizeof(struct hash_tree_node));
-	ht_node->key = num;
-	ht_node->children = data;
-	ht_node->count = 1;
 	if(!add(&hm->hash_table[converted],(void *) ht_node,1))
 	{
 		exit(0);
@@ -114,7 +126,7 @@ void insert_in_hash(struct hash_map *hm, uint32_t num,void *data)
 
 }
 
-void *get_data_from_hash(struct hash_map *hm, uint32_t num)
+struct node *get_data_from_hash(struct hash_map *hm, uint32_t num)
 {
 	uint32_t converted = hash(num)%100;
 	return hm->hash_table[converted];

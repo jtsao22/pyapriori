@@ -58,25 +58,20 @@ int add(struct node **n, void* d, int count)
 }
 
 
-
-
-//void free_list(struct node **n,void (*free_funct)(void *))
-
-
-void free_list(struct node **n,void (*free_funct)(void *,void *))
+void free_list(struct node **n,void (*free_funct)(void *))
 {
 	struct node *current;
 	struct node *next;
 	for(current = *n; current != NULL; current = next)
 	{
 		next = current->next; 
-		(*free_funct)(current->data,NULL);
+		(*free_funct)(current->data);
 		free(current);
 	}
 
 }
 
-void free_ints(void *data, void *extra_free)
+void free_ints(void *data)
 {
 	free(data);
 }
@@ -88,13 +83,11 @@ void free_list_of_lists(struct node **n)
 	for(current = *n; current != NULL; current = next)
 	{
 		next = current->next;
-		//struct node** temp = ;
 		free_list(((struct node**)(&current->data)),&free_ints);
 		free(current);
 	}		
 }
 
-//void free_list_hash_tree_node(void *
 
 
 

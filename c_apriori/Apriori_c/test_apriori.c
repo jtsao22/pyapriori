@@ -5,17 +5,18 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#include <stdint.h>     /* defines uint32_t etc */
 #include "apriori.h"
 #include "linked_list.h"
 #include "hash_map.h"
 #include "hash_tree.h"
 
-
+#ifdef CMOCKERY
 extern void* _test_malloc(const size_t size, const char* file, const int line);
 extern void _test_free(void* const ptr, const char* file, const int line);
 #define malloc(size) _test_malloc(size, __FILE__, __LINE__)
 #define free(ptr) _test_free(ptr, __FILE__, __LINE__)
-
+#endif 
 
 
 
@@ -107,9 +108,9 @@ void test_parser(void **state)
 	assert_true(list != NULL);
 	free_list_of_lists(&list);
 	/* test empty file */ 
-	struct node *list1 = parser("test2.dat",3,FALSE);
-	assert_true(list1 == NULL);
-	free_list_of_lists(&list1);
+//	struct node *list1 = parser("test2.dat",3,FALSE);
+//	assert_true(list1 == NULL);
+//	free_list_of_lists(&list1);
 }
 
 void test_get_token_list(void **state)
@@ -123,7 +124,8 @@ void test_get_token_list(void **state)
 	assert_true(*((int *)get_data(check,1))==2);
 	assert_true(*((int *)get_data(check,2))==3);
 	assert_true(*((int *)get_data(check,3))==4);
-	free_list(&check);
+
+	free_list(&check,&free_ints);
 	fclose(f);
 	
 	g = read_file("test2.dat");
@@ -146,11 +148,11 @@ void test_get_len_list(void **state)
 	FILE *f = read_file("test.dat");
 	struct node* check = get_token_list(f);
 	assert_int_equal(get_len_list(check),4);
-	free_list(&check);
+	free_list(&check,&free_ints);
 	f = read_file("test1.dat");
 	check = get_token_list(f);
 	assert_int_equal(get_len_list(check),6);
-	free_list(&check);
+	free_list(&check,&free_ints);
 		
 }
 
@@ -171,7 +173,8 @@ void test_get_windows(void **state)
 			get_data(list_of_parses,1)),1))),3);
 	assert_int_equal(*((int *)(get_data((struct node *)(
 			get_data(list_of_parses,1)),2))),4);
-	free_list(&check);
+	free_list(&check,&free_ints);
+
 	free_list_of_lists(&list_of_parses);
 	fclose(f);
 	
@@ -187,7 +190,7 @@ void test_get_windows(void **state)
 	list_of_parses = get_windows(check,3);
 	print_lists(list_of_parses);
 	print_nodes(check);
-	free_list(&check);
+	free_list(&check,&free_ints);
 	free_list_of_lists(&list_of_parses);
 	fclose(h);
 	
@@ -202,7 +205,7 @@ void test_check_inside(void **state)
 	
 	assert_true(check_inside(3,parse_list));
 	assert_false(check_inside(4,parse_list));
-	free_list(&parse_list);
+	free_list(&parse_list,&free_ints);
 }
 
 void test_get_dynamic_windows(void **state)
@@ -224,7 +227,7 @@ void test_get_dynamic_windows(void **state)
 	assert_int_equal(*((int *)(get_data(temp,1))),4);
 	temp = (struct node *)(get_data(list_of_parses,3));
 	assert_int_equal(*((int *)(get_data(temp,0))),4);
-	free_list(&check);
+	free_list(&check,&free_ints);
 	free_list_of_lists(&list_of_parses);
 	fclose(f);
 }
@@ -238,7 +241,7 @@ void test_get_data(void **state)
 	assert_true(*((int *)get_data(check,2))==3);
 	assert_true(*((int *)get_data(check,3))==4);
 	fclose(f);
-	free_list(&check);
+	free_list(&check,&free_ints);
 }
 
 void test_merge_sort(void **state)
@@ -309,9 +312,8 @@ void test_free_list(void **state)
 	add(&test,(void *)temp,1);
 	assert_int_equal(*((int *)get_data(test,0)),4);
 	assert_int_equal(*((int *)get_data(test,1)),2);
-	free_list(&test);
-	
-	
+	free_list(&test,&free_ints);
+
 }
 
 void test_free_list_of_lists(void **state)
@@ -368,8 +370,9 @@ void test_compare_lists(void **state)
 	assert_int_equal(compare_lists((void *)test_1,(void *)test_2),1);
 	assert_int_equal(compare_lists((void *)test_1,(void *)test_1),0);
 	assert_int_equal(compare_lists((void *)test_2,(void *)test_2),0);
-	free_list(&test_1);
-	free_list(&test_2);
+	free_list(&test_1,&free_ints);
+	free_list(&test_2,&free_ints);
+
 }
 
 void test_hash(void **state)
@@ -384,21 +387,72 @@ void test_hash(void **state)
 
 void test_insert_in_hash(void **state)
 {
-
-	struct hash_map *hm = malloc(sizeof(struct hash_map));
-	initialize_hash_map(hm);
-	int *temp = malloc(sizeof(int));
-	*temp = 4;
+	int *temp = NULL;
+	struct hash_tree_node *h_ptr = NULL;
 	struct hash_tree_node *ht_node = malloc(sizeof(struct hash_tree_node));
-	ht_node->key = 2;
-	ht_node->children = (void *)temp;
-	ht_node->count = 1;
+	struct hash_tree_node *ht_node_2 = malloc(sizeof(struct hash_tree_node));
+	struct hash_tree_node *ht_node_3 = malloc(sizeof(struct hash_tree_node));
+	struct hash_tree_node *ht_node_4 = malloc(sizeof(struct hash_tree_node));
+	init_hash_tree_node(ht_node, NULL,interior,1);
 	
-	insert_in_hash(hm,2,(void *)ht_node);
-	assert_int_equal(*((int *)((struct hash_tree_node *)(hm->hash_table[2]->data))->children),4);
-	free(temp);
+	initialize_hash_map(&ht_node->children);
+	init_hash_tree_node(ht_node_4,ht_node,leaf,1);
+	init_hash_tree_node(ht_node_3,ht_node,leaf,1);
+	init_hash_tree_node(ht_node_2, ht_node,leaf,1);
+	
+	temp = malloc(sizeof(int));
+	*temp = 3;	
+	add(&ht_node_2->item_lists,(void *)temp,1);
+	
+	temp = malloc(sizeof(int));
+	*temp = 4;
+	add(&ht_node_3->item_lists,(void *)temp,1);
+	
+	temp = malloc(sizeof(int));
+	*temp = 5;
+	add(&ht_node_4->item_lists,(void *)temp,1);
+
+	/* test two separate inserts */
+	insert_in_hash(ht_node->children,2,(void *)ht_node_2);
+	insert_in_hash(ht_node->children,3,(void *)ht_node_3);
+
+	h_ptr = (struct hash_tree_node *)(ht_node->children->hash_table[90]->data);
+	assert_int_equal(*((int *)(h_ptr->item_lists->data)),3);
+	h_ptr = (struct hash_tree_node *)(ht_node->children->hash_table[93]->data);
+	assert_int_equal(*((int *)(h_ptr->item_lists->data)),4);
+	
+	/* test inserts into same bucket */ 
+	insert_in_hash(ht_node->children,2,(void *)ht_node_4);
+	h_ptr = (struct hash_tree_node *)(ht_node->children->hash_table[90]->data);
+	assert_int_equal(*((int *)(h_ptr->item_lists->data)),3);
+	h_ptr = (struct hash_tree_node *)(ht_node->children->hash_table[90]->next->data);
+	assert_int_equal(*((int *)(h_ptr->item_lists->data)),5);
+
+	free_hash_tree_node(ht_node);
+
 }
 
+void test_get_data_from_hash(void **state)
+{
+//	struct hash_map *hm = malloc(sizeof(struct hash_map));
+//	initialize_hash_map(hm);
+//	int *temp = malloc(sizeof(int));
+//	*temp = 4;
+//	
+//	insert_in_hash(hm,2,(void *)temp);
+//	temp = malloc(sizeof(int));
+//	*temp = 8;
+//	insert_in_hash(hm,3,(void *)temp);
+//	assert_int_equal(*((int *)((struct hash_tree_node *)(hm->hash_table[90]->data))->children),4);
+//	assert_int_equal(*((int *)((struct hash_tree_node *)(hm->hash_table[93]->data))->children),8);
+	
+//	struct node *n = get_data_from_hash(hm,2);
+//	assert_int_equal(*((int *)((struct hash_tree_node *)(n->data))->children),4);
+//	n = get_data_from_hash(hm,3);
+//	assert_int_equal(*((int *)((struct hash_tree_node *)(n->data))->children),8);
+//	free_hash_map(hm);
+	
+}
 
 
 
@@ -417,10 +471,12 @@ int main(int argc, char* argv[])
 		unit_test(test_merge_sort),
 		unit_test(test_compare_lists),
 		unit_test(test_get_dynamic_windows),
-		unit_test(test_apriori),
+		unit_test(test_insert_in_hash),
 		unit_test(test_one_item_sets),
+		unit_test(test_apriori),
 		unit_test(test_check_inside),
-		unit_test(test_hash)
+		unit_test(test_hash),
+		unit_test(test_get_data_from_hash)
 		
 	};
 	return run_tests(tests);
