@@ -38,7 +38,7 @@ struct node* apriori(double minsup, int w_size,
 //	insert_in_hash(hm,22,(void *)temp);
 //	void *data = get_data_from_hash(hm,22);
 //	printf("%i\n",*((int *)(data)));
-	free_hash_map(hm);
+	free_hash_map(&hm);
 	
 	//free(temp);
 	
@@ -53,14 +53,14 @@ struct node* one_item_sets(struct node* T, double *minsup)
 	struct node *iter = T;
 	struct node *all_trans_list = NULL; 
 	int total_num_trans = 0;
-	int *temp = NULL;
+	uint32_t *temp = NULL;
 	while(iter != NULL)
 	{
 		struct node *transaction = (struct node*)iter->data;
 		while(transaction != NULL)
 		{
-			temp = malloc(sizeof(int));
-			*temp = *((int *)(transaction->data));
+			temp = malloc(sizeof(uint32_t));
+			*temp = *((uint32_t *)(transaction->data));
 			if(*temp != 0)
 			{
 				if(!add(&all_trans_list,(void *)temp,0))
@@ -88,15 +88,15 @@ struct node* one_item_sets(struct node* T, double *minsup)
 	struct node *item_list = NULL;
 	struct node *temp_list = NULL;
 	temp = NULL;
-	int item = *((int *)(iter->data));
+	uint32_t item = *((uint32_t *)(iter->data));
 	int count = 0;
 	while(iter != NULL)
 	{
-		if(*((int *)(iter->data)) != item)
+		if(*((uint32_t *)(iter->data)) != item)
 		{
 			if(count >= *minsup)
 			{
-				temp = malloc(sizeof(int));
+				temp = malloc(sizeof(uint32_t));
 				*temp = item;
 				if(*temp != 0)
 				{
@@ -112,7 +112,7 @@ struct node* one_item_sets(struct node* T, double *minsup)
 					printf("Error with Memory Allocation");
 		 			exit(0);
 				}
-				item = *((int *)(iter->data));
+				item = *((uint32_t *)(iter->data));
 				count = 1;
 				temp_list = NULL;
 			}
@@ -128,7 +128,7 @@ struct node* one_item_sets(struct node* T, double *minsup)
 	/* add last transaction */ 
 	if(count > *minsup)
 	{
-		temp = malloc(sizeof(int));
+		temp = malloc(sizeof(uint32_t));
 		*temp = item;
 		if(*temp != 0)
 		{
@@ -224,7 +224,7 @@ struct node* get_windows(struct node* token_list, int w_size)
  	int token = 0;
  	int iter = 0;
  	int value = 0;
- 	int * temp = NULL;
+ 	uint32_t * temp = NULL;
  	struct node *parse_list = NULL;
  	struct node *list_of_parses = NULL;
  	struct node *current = token_list;
@@ -237,14 +237,14 @@ struct node* get_windows(struct node* token_list, int w_size)
  		token = k;
  		while(temp_token != NULL && token < k + w_size)
  		{
- 			value = *((int *)temp_token->data);
+ 			value = *((uint32_t *)temp_token->data);
 		
 			/* this check_inside function checks if *temp is in side 
 			 * parse_list by parsing through the list. This means we
 			 * assume a fairly small window size for performance */ 
 			if(!check_inside(value, parse_list))
 			{
-				temp = (int *)malloc(sizeof(int));
+				temp = (uint32_t *)malloc(sizeof(uint32_t));
 				*temp = value;
 	 			if(!add(&parse_list,(void *)temp,1))
 	 			{
@@ -278,7 +278,7 @@ int check_inside(int value, struct node *list)
 {
 	while(list != NULL)
 	{
-		if(*((int *)(list->data)) == value)
+		if(*((uint32_t *)(list->data)) == value)
 			return TRUE;
 		list = list->next;
 	}
@@ -288,15 +288,15 @@ int check_inside(int value, struct node *list)
 
 struct node* get_dynamic_windows(struct node* token_list)
 {
-	int *temp = NULL;
+	uint32_t *temp = NULL;
 	struct node *parse_list = NULL;
  	struct node *list_of_parses = NULL;
 	struct node* start_t = token_list;
 	struct node* token = NULL;
 	while(start_t != NULL)
 	{
-		temp = (int *)malloc(sizeof(int));
-		*temp = *((int *)start_t->data);
+		temp = (uint32_t *)malloc(sizeof(uint32_t));
+		*temp = *((uint32_t *)start_t->data);
 		if(!add(&parse_list,(void *)temp,1))
 		{
 			printf("Error while reading from file");
@@ -305,7 +305,7 @@ struct node* get_dynamic_windows(struct node* token_list)
 		token = start_t->next;
 		while(token != NULL)
 		{
-			if(*((int *)token->data) == *((int *)start_t->data))
+			if(*((uint32_t *)token->data) == *((uint32_t *)start_t->data))
 			{
 				parse_list = mergesort(parse_list,&compare_ints);
 				if(!add(&list_of_parses,(void *)parse_list,1))
@@ -318,8 +318,8 @@ struct node* get_dynamic_windows(struct node* token_list)
 			}
 			else
 			{
-				temp = (int *)malloc(sizeof(int));
-				*temp = *((int *)token->data);
+				temp = (uint32_t *)malloc(sizeof(uint32_t));
+				*temp = *((uint32_t *)token->data);
 				if(!add(&parse_list,(void *)temp,1))
 				{
 					printf("Error while reading from file");
@@ -328,7 +328,7 @@ struct node* get_dynamic_windows(struct node* token_list)
 			}
 			token = token->next;
 		}
-		if(parse_list != NULL || *((int *)token->data) != *((int *)start_t->data))
+		if(parse_list != NULL || *((uint32_t *)token->data) != *((uint32_t *)start_t->data))
 		{
 			if(parse_list != NULL)
 			{
@@ -353,14 +353,14 @@ struct node* get_token_list(FILE* fp)
 {
 	char *s;
 	struct node *head = NULL;
-	int *temp = NULL;
+	uint32_t *temp = NULL;
 		
 	while(!feof(fp))
 	{
 		
 		if(fscanf(fp,"%as",&s) > 0)
 		{	
-			temp = malloc(sizeof(int));
+			temp = malloc(sizeof(uint32_t));
 			*temp = atoi(s);
 			if(!add(&head,(void *) temp,1))
 			{

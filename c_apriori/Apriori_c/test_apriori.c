@@ -293,8 +293,6 @@ void test_merge_sort(void **state)
 	add(&test_2,(void *)test,1);
 	test_2 = mergesort(test_2,&compare_lists);
 	
-	print_lists(test_2);
-	
 	free_list_of_lists(&test_2);
 
 	
@@ -389,6 +387,9 @@ void test_insert_in_hash(void **state)
 {
 	int *temp = NULL;
 	struct hash_tree_node *h_ptr = NULL;
+	struct node *n_ptr = NULL;
+	struct node *n_ptr_2 = NULL;
+	struct node *n_ptr_3 = NULL;
 	struct hash_tree_node *ht_node = malloc(sizeof(struct hash_tree_node));
 	struct hash_tree_node *ht_node_2 = malloc(sizeof(struct hash_tree_node));
 	struct hash_tree_node *ht_node_3 = malloc(sizeof(struct hash_tree_node));
@@ -402,31 +403,36 @@ void test_insert_in_hash(void **state)
 	
 	temp = malloc(sizeof(int));
 	*temp = 3;	
-	add(&ht_node_2->item_lists,(void *)temp,1);
+	add(&n_ptr,(void *)temp,1);
+	add(&ht_node_2->item_lists,(void *)n_ptr,1);
 	
 	temp = malloc(sizeof(int));
 	*temp = 4;
-	add(&ht_node_3->item_lists,(void *)temp,1);
+	add(&n_ptr_2,(void *)temp,1);
+	add(&ht_node_3->item_lists,(void *)n_ptr_2,1);
 	
 	temp = malloc(sizeof(int));
 	*temp = 5;
-	add(&ht_node_4->item_lists,(void *)temp,1);
+	add(&n_ptr_3,(void *)temp,1);
+	add(&ht_node_4->item_lists,(void *)n_ptr_3,1);
 
 	/* test two separate inserts */
 	insert_in_hash(ht_node->children,2,(void *)ht_node_2);
 	insert_in_hash(ht_node->children,3,(void *)ht_node_3);
 
 	h_ptr = (struct hash_tree_node *)(ht_node->children->hash_table[90]->data);
-	assert_int_equal(*((int *)(h_ptr->item_lists->data)),3);
+	assert_int_equal(*((int *)((struct node *)(h_ptr->item_lists->data))->data),3);
 	h_ptr = (struct hash_tree_node *)(ht_node->children->hash_table[93]->data);
-	assert_int_equal(*((int *)(h_ptr->item_lists->data)),4);
+	assert_int_equal(*((int *)((struct node *)(h_ptr->item_lists->data))->data),4);
 	
 	/* test inserts into same bucket */ 
 	insert_in_hash(ht_node->children,2,(void *)ht_node_4);
 	h_ptr = (struct hash_tree_node *)(ht_node->children->hash_table[90]->data);
-	assert_int_equal(*((int *)(h_ptr->item_lists->data)),3);
-	h_ptr = (struct hash_tree_node *)(ht_node->children->hash_table[90]->next->data);
-	assert_int_equal(*((int *)(h_ptr->item_lists->data)),5);
+	assert_int_equal(*((int *)((struct node *)(h_ptr->item_lists->
+			data))->data),3);
+	h_ptr = (struct hash_tree_node *)(ht_node->children->hash_table[90]
+			->next->data);
+	assert_int_equal(*((int *)((struct node *)(h_ptr->item_lists->data))->data),5);
 
 	free_hash_tree_node(ht_node);
 
@@ -434,27 +440,91 @@ void test_insert_in_hash(void **state)
 
 void test_get_data_from_hash(void **state)
 {
-//	struct hash_map *hm = malloc(sizeof(struct hash_map));
-//	initialize_hash_map(hm);
-//	int *temp = malloc(sizeof(int));
-//	*temp = 4;
-//	
-//	insert_in_hash(hm,2,(void *)temp);
-//	temp = malloc(sizeof(int));
-//	*temp = 8;
-//	insert_in_hash(hm,3,(void *)temp);
-//	assert_int_equal(*((int *)((struct hash_tree_node *)(hm->hash_table[90]->data))->children),4);
-//	assert_int_equal(*((int *)((struct hash_tree_node *)(hm->hash_table[93]->data))->children),8);
+	int *temp = NULL;
+	struct hash_tree_node *ht_node = malloc(sizeof(struct hash_tree_node));
+	struct hash_tree_node *ht_node_2 = malloc(sizeof(struct hash_tree_node));
+	struct hash_tree_node *ht_node_3 = malloc(sizeof(struct hash_tree_node));
+	struct hash_tree_node *ht_node_4 = malloc(sizeof(struct hash_tree_node));
+	struct node *n_ptr = NULL;
+	struct node *n_ptr_2 = NULL;
+	struct node *n_ptr_3 = NULL;
 	
-//	struct node *n = get_data_from_hash(hm,2);
-//	assert_int_equal(*((int *)((struct hash_tree_node *)(n->data))->children),4);
-//	n = get_data_from_hash(hm,3);
-//	assert_int_equal(*((int *)((struct hash_tree_node *)(n->data))->children),8);
-//	free_hash_map(hm);
+	init_hash_tree_node(ht_node, NULL,interior,1);
+	
+	initialize_hash_map(&ht_node->children);
+	init_hash_tree_node(ht_node_4,ht_node,leaf,1);
+	init_hash_tree_node(ht_node_3,ht_node,leaf,1);
+	init_hash_tree_node(ht_node_2, ht_node,leaf,1);
+	
+	temp = malloc(sizeof(int));
+	*temp = 3;	
+	add(&n_ptr,(void *)temp,1);
+	add(&ht_node_2->item_lists,(void *)n_ptr,1);
+	
+	temp = malloc(sizeof(int));
+	*temp = 4;
+	add(&n_ptr_2,(void *)temp,1);
+	add(&ht_node_3->item_lists,(void *)n_ptr_2,1);
+	
+	temp = malloc(sizeof(int));
+	*temp = 5;
+	add(&n_ptr_3,(void *)temp,1);
+	add(&ht_node_4->item_lists,(void *)n_ptr_3,1);
+
+	/* test two separate inserts */
+	insert_in_hash(ht_node->children,2,(void *)ht_node_2);
+	insert_in_hash(ht_node->children,3,(void *)ht_node_3);
+
+	assert_int_equal(*((int *)((struct node *)((struct hash_tree_node *)
+			get_data_from_hash(ht_node->children,2)->data)->item_lists->data)->data),3);
+	assert_int_equal(*((int *)((struct node *)((struct hash_tree_node *)
+			get_data_from_hash(ht_node->children,3)->data)->item_lists->data)->data),4);
+	
+	/* test inserts into same bucket */ 
+	insert_in_hash(ht_node->children,2,(void *)ht_node_4);
+
+	assert_int_equal(*((int *)((struct node *)((struct hash_tree_node *)
+			get_data_from_hash(ht_node->children,2)->data)->item_lists
+			->data)->data),3);
+	assert_int_equal(*((int *)((struct node *)((struct hash_tree_node *)
+			get_data_from_hash(ht_node->children,2)->next->data)->item_lists
+			->data)->data),5);
+	free_hash_tree_node(ht_node);
+
 	
 }
 
+void test_expand_node(void **state)
+{
+	/* int expand_node(struct hash_tree_node *ht_node, int threshold) */ 
+	struct hash_tree_node *ht_node = NULL;
+	
+	//expand_node(
+}
 
+void test_add_trans(void **state)
+{
+	struct hash_tree *ht = NULL;
+	init_hash_tree(&ht,3);
+	
+	
+	struct node *int_node = NULL;
+	struct node *trans = NULL;
+	uint32_t *temp = malloc(sizeof(uint32_t));
+	*temp = 4;
+	add(&int_node,(void *)temp,1);
+	temp = malloc(sizeof(uint32_t));
+	*temp = 5;
+	add(&int_node,(void *)temp,1);
+	add(&trans,(void *)int_node,1);
+	add_trans(ht,(void *)trans);
+	
+	free_hash_tree(ht);
+	
+	
+	
+//	void add_trans(struct hash_tree *ht,void *data)
+}
 
 int main(int argc, char* argv[]) 
 {
@@ -476,7 +546,9 @@ int main(int argc, char* argv[])
 		unit_test(test_apriori),
 		unit_test(test_check_inside),
 		unit_test(test_hash),
-		unit_test(test_get_data_from_hash)
+		unit_test(test_get_data_from_hash),
+		unit_test(test_expand_node),
+		unit_test(test_add_trans)
 		
 	};
 	return run_tests(tests);

@@ -28,7 +28,7 @@ struct hash_map
 };
 
 void initialize_hash_map(struct hash_map **hm);
-void free_hash_map(struct hash_map *hm);
+void free_hash_map(struct hash_map **hm);
 uint32_t hash(uint32_t num);
 uint32_t hashword(const uint32_t *k,size_t length,uint32_t initval);
 void insert_in_hash(struct hash_map *hm, uint32_t num,struct hash_tree_node *ht_node);

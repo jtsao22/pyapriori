@@ -91,14 +91,14 @@ void initialize_hash_map(struct hash_map **hm)
 	(*hm)->count = 0;
 }
 
-void free_hash_map(struct hash_map *hm)
+void free_hash_map(struct hash_map **hm)
 {
 	int k;
 	struct node *current = NULL;
 	struct node *next = NULL;
-	for(k= 0; k < hm->size; k++)
+	for(k= 0; k < (*hm)->size; k++)
 	{
-		current = hm->hash_table[k];
+		current = (*hm)->hash_table[k];
 		while(current != NULL)
 		{
 			next = current->next;
@@ -108,8 +108,8 @@ void free_hash_map(struct hash_map *hm)
 		}
 	}
 	
-	free(hm->hash_table);
-	free(hm);
+	free((*hm)->hash_table);
+	free(*hm);
 }
 
 
