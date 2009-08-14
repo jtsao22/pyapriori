@@ -25,7 +25,7 @@ void print_nodes(struct node *n)
 	//print the node data in the linked list
 	while(n != NULL)
 	{
-		printf("%i ",*((int *)n->data));
+		printf("%i ",*((uint32_t *)n->data));
 		n = n->next;
 	}
 		
@@ -252,7 +252,7 @@ void test_merge_sort(void **state)
 	*temp = 1;
 	add(&test,(void *) temp,1);
 	//test mergesort on one item (ints)
-	mergesort(test,&compare_ints);
+	test = mergesort(test,&compare_ints);
 	assert_int_equal(*((int *)get_data(test,0)),1);
 	temp = malloc(sizeof(int));
 	*temp = 4;
@@ -261,7 +261,7 @@ void test_merge_sort(void **state)
 	*temp = 2;
 	add(&test,(void *)temp,1);
 	//test mergesort on three items (ints)
-	mergesort(test,&compare_ints);
+	test = mergesort(test,&compare_ints);
 	assert_int_equal(*((int *)get_data(test,0)),1);
 	assert_int_equal(*((int *)get_data(test,1)),2);
 	assert_int_equal(*((int *)get_data(test,2)),4);
@@ -272,7 +272,7 @@ void test_merge_sort(void **state)
 	*temp = 3;
 	add(&test,(void *)temp,1);
 	//mergesort on 5 items (ints)
-	mergesort(test,&compare_ints);
+	test =mergesort(test,&compare_ints);
 	assert_int_equal(*((int *)get_data(test,0)),1);
 	assert_int_equal(*((int *)get_data(test,1)),2);
 	assert_int_equal(*((int *)get_data(test,2)),3);
@@ -505,10 +505,46 @@ void test_expand_node(void **state)
 void test_add_trans(void **state)
 {
 	struct hash_tree *ht = NULL;
-	init_hash_tree(&ht,3);
-	
+	init_hash_tree(&ht,1);
 	
 	struct node *int_node = NULL;
+	struct node *int_node_2 = NULL;	
+	uint32_t *temp = malloc(sizeof(uint32_t));
+	*temp = 4;
+	add(&int_node,(void *)temp,1);
+	temp = malloc(sizeof(uint32_t));
+	*temp = 5;
+	add(&int_node,(void *)temp,1);
+
+	add_trans(&ht,(void *)int_node);
+	
+	temp = malloc(sizeof(uint32_t));
+	*temp = 3;
+	add(&int_node_2,(void *)temp,1);
+	temp = malloc(sizeof(uint32_t));
+	*temp = 2;
+	add(&int_node_2,(void *)temp,1);
+	temp = malloc(sizeof(uint32_t));
+	*temp = 1;
+	add(&int_node_2,(void *)temp,1);
+	
+	add_trans(&ht,(void *)int_node_2);	
+	
+	
+	print_all_tree(ht->root);
+	
+	
+	free_hash_tree(ht);
+	
+}
+
+void test_subset(void **state)
+{
+	struct hash_tree *ht = NULL;
+	init_hash_tree(&ht,1);
+	
+	struct node *int_node = NULL;
+	struct node *int_node_2 = NULL;	
 	struct node *trans = NULL;
 	uint32_t *temp = malloc(sizeof(uint32_t));
 	*temp = 4;
@@ -516,14 +552,84 @@ void test_add_trans(void **state)
 	temp = malloc(sizeof(uint32_t));
 	*temp = 5;
 	add(&int_node,(void *)temp,1);
-	add(&trans,(void *)int_node,1);
-	add_trans(ht,(void *)trans);
+
+	add_trans(&ht,(void *)int_node);
+	
+	temp = malloc(sizeof(uint32_t));
+	*temp = 3;
+	add(&int_node_2,(void *)temp,1);
+	temp = malloc(sizeof(uint32_t));
+	*temp = 2;
+	add(&int_node_2,(void *)temp,1);
+	temp = malloc(sizeof(uint32_t));
+	*temp = 1;
+	add(&int_node_2,(void *)temp,1);
+	
+	add_trans(&ht,(void *)int_node_2);	
+	
+	temp = malloc(sizeof(uint32_t));
+	*temp = 4;
+	add(&trans,(void *)temp,1);
+	temp = malloc(sizeof(uint32_t));
+	*temp = 3;
+	add(&trans,(void *)temp,1);
+	temp = malloc(sizeof(uint32_t));
+	*temp = 2;
+	add(&trans,(void *)temp,1);
+	temp = malloc(sizeof(uint32_t));
+	*temp = 1;
+	add(&trans,(void *)temp,1);
+	
+	subset(ht,trans);
+	free_list(&trans,&free_ints);
 	
 	free_hash_tree(ht);
+}
+
+void test_is_subset(void **state)
+{
+	struct node *int_node_2 = NULL;	
+	struct node *trans = NULL;
+	uint32_t *temp = NULL;
 	
+	temp = malloc(sizeof(uint32_t));
+	*temp = 3;
+	add(&int_node_2,(void *)temp,1);
+	temp = malloc(sizeof(uint32_t));
+	*temp = 2;
+	add(&int_node_2,(void *)temp,1);
+	temp = malloc(sizeof(uint32_t));
+	*temp = 1;
+	add(&int_node_2,(void *)temp,1);
 	
+	int_node_2 = mergesort(int_node_2,&compare_ints);
 	
-//	void add_trans(struct hash_tree *ht,void *data)
+	temp = malloc(sizeof(uint32_t));
+	*temp = 4;
+	add(&trans,(void *)temp,1);
+	temp = malloc(sizeof(uint32_t));
+	*temp = 3;
+	add(&trans,(void *)temp,1);
+	temp = malloc(sizeof(uint32_t));
+	*temp = 1;
+	add(&trans,(void *)temp,1);
+	temp = malloc(sizeof(uint32_t));
+	*temp = 1;
+	add(&trans,(void *)temp,1);
+	
+	trans = mergesort(trans,&compare_ints);
+	printf("TRANS: ");
+	print_nodes(trans);
+	printf("\nINT_NODE_2: ");
+	print_nodes(int_node_2);
+	printf("%i",is_subset(trans,int_node_2));
+
+	printf("%i",is_subset(trans,int_node_2));
+
+	free_list(&int_node_2,&free_ints);
+	free_list(&trans,&free_ints);
+
+	
 }
 
 int main(int argc, char* argv[]) 
@@ -548,7 +654,9 @@ int main(int argc, char* argv[])
 		unit_test(test_hash),
 		unit_test(test_get_data_from_hash),
 		unit_test(test_expand_node),
-		unit_test(test_add_trans)
+		unit_test(test_add_trans),
+		unit_test(test_subset),
+		unit_test(test_is_subset)
 		
 	};
 	return run_tests(tests);

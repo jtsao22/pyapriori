@@ -1,5 +1,6 @@
 #include <malloc.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include "linked_list.h"
@@ -33,8 +34,7 @@ int add(struct node **n, void* d, int count)
 		}
 		(*n)->next = NULL;
 		(*n)->count = count;
-		(*n)->data = d;	
-		
+		(*n)->data = d;			
 	}
 	else
 	{
@@ -68,7 +68,7 @@ void free_list(struct node **n,void (*free_funct)(void *))
 		(*free_funct)(current->data);
 		free(current);
 	}
-
+	*n = NULL;
 }
 
 void free_ints(void *data)
@@ -86,6 +86,7 @@ void free_list_of_lists(struct node **n)
 		free_list(((struct node**)(&current->data)),&free_ints);
 		free(current);
 	}		
+	*n = NULL;
 }
 
 

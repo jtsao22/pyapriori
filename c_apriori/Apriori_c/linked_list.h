@@ -32,4 +32,9 @@ void free_list_of_lists(struct node **n);
 struct node *mergesort(struct node *head,int (*cmp)(void *,void *));
 struct node *merge(struct node *head_one, struct node *head_two,int (*cmp)(void *,void *));
 
+int compare_lists(void* first, void* second);
+int compare_ints(void* first, void* second);
+
+
+
 #endif /*LINKED_LIST_*/
