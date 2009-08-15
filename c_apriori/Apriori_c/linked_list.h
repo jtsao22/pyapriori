@@ -23,6 +23,9 @@ int add(struct node **n, void* d, int count);
 void print_nodes(struct node *n);
 int get_len_list(struct node *n);
 void *get_data(struct node *n, int index);
+struct node *get_node(struct node *n, int index);
+
+struct node *copy_list(struct node *n);
 void free_ints(void *data);
 void free_list(struct node **n,void (*free_funct)(void *));
 
@@ -34,6 +37,8 @@ struct node *merge(struct node *head_one, struct node *head_two,int (*cmp)(void 
 
 int compare_lists(void* first, void* second);
 int compare_ints(void* first, void* second);
+
+int is_subset(struct node *l_1, struct node *l_2);
 
 
 

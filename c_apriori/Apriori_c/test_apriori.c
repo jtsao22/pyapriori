@@ -188,8 +188,6 @@ void test_get_windows(void **state)
 	FILE *h = read_file("test1.dat");
 	check = get_token_list(h);
 	list_of_parses = get_windows(check,3);
-	print_lists(list_of_parses);
-	print_nodes(check);
 	free_list(&check,&free_ints);
 	free_list_of_lists(&list_of_parses);
 	fclose(h);
@@ -580,17 +578,22 @@ void test_subset(void **state)
 	*temp = 1;
 	add(&trans,(void *)temp,1);
 	
-	subset(ht,trans);
+	subset(ht,&trans);
+	print_lists(ht->cand_list_final);
 	free_list(&trans,&free_ints);
-	
 	free_hash_tree(ht);
 }
+
 
 void test_is_subset(void **state)
 {
 	struct node *int_node_2 = NULL;	
 	struct node *trans = NULL;
+	struct node *int_node = NULL;
+	struct node *empty = NULL;
 	uint32_t *temp = NULL;
+	
+	
 	
 	temp = malloc(sizeof(uint32_t));
 	*temp = 3;
@@ -604,6 +607,12 @@ void test_is_subset(void **state)
 	
 	int_node_2 = mergesort(int_node_2,&compare_ints);
 	
+	/* check against empty lists */ 
+	assert_false(is_subset(int_node_2,empty));
+	assert_false(is_subset(empty,int_node_2));
+	assert_false(is_subset(empty,empty));
+	
+	
 	temp = malloc(sizeof(uint32_t));
 	*temp = 4;
 	add(&trans,(void *)temp,1);
@@ -611,22 +620,46 @@ void test_is_subset(void **state)
 	*temp = 3;
 	add(&trans,(void *)temp,1);
 	temp = malloc(sizeof(uint32_t));
-	*temp = 1;
+	*temp = 2;
 	add(&trans,(void *)temp,1);
 	temp = malloc(sizeof(uint32_t));
 	*temp = 1;
 	add(&trans,(void *)temp,1);
 	
 	trans = mergesort(trans,&compare_ints);
-	printf("TRANS: ");
-	print_nodes(trans);
-	printf("\nINT_NODE_2: ");
-	print_nodes(int_node_2);
-	printf("%i",is_subset(trans,int_node_2));
 
-	printf("%i",is_subset(trans,int_node_2));
+	
+	assert_true(is_subset(trans,int_node_2));
+
+	assert_false(is_subset(int_node_2,trans));
+
+	temp = malloc(sizeof(uint32_t));
+	*temp = 3;
+	add(&int_node,(void *)temp,1);
+	
+	assert_true(is_subset(trans,int_node));
+	
+	/* check if trans is a subset of trans */ 
+	assert_true(is_subset(trans,trans));
+	
+	temp = malloc(sizeof(uint32_t));
+	*temp = 2;
+	add(&int_node,(void *)temp,1);
+	
+	int_node = mergesort(int_node,&compare_ints);
+	
+	assert_true(is_subset(trans,int_node));
+
+	temp = malloc(sizeof(uint32_t));
+	*temp = 6;
+	add(&int_node,(void *)temp,1);
+	int_node = mergesort(int_node,&compare_ints);
+	
+	assert_false(is_subset(trans,int_node));
+	assert_false(is_subset(int_node,trans));	
 
 	free_list(&int_node_2,&free_ints);
+	free_list(&int_node,&free_ints);
 	free_list(&trans,&free_ints);
 
 	

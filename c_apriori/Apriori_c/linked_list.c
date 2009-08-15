@@ -90,9 +90,6 @@ void free_list_of_lists(struct node **n)
 }
 
 
-
-
-
 int get_len_list(struct node *n)
 {
 	int len = 0;
@@ -125,6 +122,45 @@ void *get_data(struct node *n, int index)
 	assert(FALSE);
 	return 0;
 }
+
+struct node *get_node(struct node *n, int index)
+{
+	int count = 0;
+	while(n != NULL)
+	{
+		if(count == index)
+		{
+			return n;
+		}
+		count++;
+		n = n->next; 	
+	}
+
+	// Functions that call this function will only call
+	// this function if they know the node is in the list
+	// Thus, this line should not be outputted and is here
+	// in case there's an error. 	
+	printf("Error: The node was not found in linked list");
+	assert(FALSE);
+	return 0;
+}
+
+struct node *copy_list(struct node *n)
+{
+	uint32_t *temp = NULL;
+	struct node *iter = n;
+	struct node *copy = NULL;
+	while(iter != NULL)
+	{
+		temp = malloc(sizeof(uint32_t));
+		*temp = *((uint32_t *)iter->data);
+		add(&copy,(void *)temp,iter->count);
+		iter = iter->next;
+	}
+	return copy;
+}
+
+
 
 
 
@@ -217,6 +253,41 @@ struct node *mergesort(struct node *head,int (*cmp)(void *,void *))
 	head->next = NULL;
 	
 	return merge(mergesort(head_one,cmp), mergesort(head_two,cmp),cmp);
+}
+
+int is_subset(struct node *l_1, struct node *l_2)
+/* Returns if l_2 is a subset of l_1 */ 
+{
+	if(l_1 == NULL || l_2 == NULL)
+		return FALSE;
+	
+	if(get_len_list(l_1) < get_len_list(l_2))
+		return FALSE;
+	
+	unsigned char inside;
+	struct node *iter_1 = l_1;
+	struct node *iter_2 = l_2;
+	struct node *iter_3 = NULL;
+	while(iter_1 != NULL)
+	{
+		iter_2 = l_2;
+		if(*((int *)iter_1->data) == *((int *)iter_2->data))
+		{
+			iter_3 = iter_1;
+			inside = TRUE;
+			while(iter_2 != NULL && iter_3 != NULL)
+			{
+				if(*((int *)iter_2->data) != *((int *)iter_3->data))
+					inside = FALSE;
+				iter_3 = iter_3->next;
+				iter_2 = iter_2->next;
+			}
+			if(inside == TRUE && iter_2 == NULL)
+				return TRUE;
+		}
+		iter_1 = iter_1->next;
+	}
+	return FALSE;
 }
 
 
