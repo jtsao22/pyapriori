@@ -665,6 +665,57 @@ void test_is_subset(void **state)
 	
 }
 
+void test_check_minsup(void **state)
+{
+	struct hash_tree *ht = NULL;
+	init_hash_tree(&ht,3);
+	
+	struct hash_tree_node *ht_node = malloc(sizeof(struct hash_tree_node));
+	init_hash_tree_node(ht_node,NULL,leaf,1);
+	
+	struct node *head = NULL;
+	uint32_t *temp = malloc(sizeof(uint32_t));
+	*temp = 1;
+	add(&head,(void *)temp,1);
+	temp = malloc(sizeof(uint32_t));
+	*temp = 2;
+	add(&head,(void *)temp,1);
+	temp = malloc(sizeof(uint32_t));
+	*temp = 3;
+	add(&head,(void *)temp,1);
+	temp = malloc(sizeof(uint32_t));
+	*temp = 4;
+	add(&head,(void *)temp,1);
+	add_trans(&ht,head);
+	
+	check_minsup(ht,ht->root,1.1);
+	
+	print_lists(ht->l_k_set);
+	free_list_of_lists(&ht->l_k_set);
+	
+	head = NULL;
+	temp = malloc(sizeof(uint32_t));
+	*temp = 2;
+	add(&head,(void *)temp,1);
+	temp = malloc(sizeof(uint32_t));
+	*temp = 5;
+	add(&head,(void *)temp,1);
+	temp = malloc(sizeof(uint32_t));
+	*temp = 1;
+	add(&head,(void *)temp,1);
+	temp = malloc(sizeof(uint32_t));
+	*temp = 6;
+	add(&head,(void *)temp,1);
+	add_trans(&ht,head);
+	ht->root->item_lists->count = 2;
+	check_minsup(ht,ht->root,2);
+	
+	print_lists(ht->l_k_set);
+	
+	free_hash_tree_node(ht_node);
+	free_hash_tree(ht);
+}
+
 int main(int argc, char* argv[]) 
 {
 	UnitTest tests[] = 
@@ -689,7 +740,8 @@ int main(int argc, char* argv[])
 		unit_test(test_expand_node),
 		unit_test(test_add_trans),
 		unit_test(test_subset),
-		unit_test(test_is_subset)
+		unit_test(test_is_subset),
+		unit_test(test_check_minsup)
 		
 	};
 	return run_tests(tests);
