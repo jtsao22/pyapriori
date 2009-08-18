@@ -31,16 +31,16 @@ void print_nodes(struct node *n)
 		
 }
 
-void print_lists(struct node *n)
-{
-	while(n != NULL)
-	{
-		printf("List: ");
-		print_nodes((struct node *)(n->data));
-		printf("\n");
-		n = n->next;	
-	}
-}
+//void print_lists(struct node *n)
+//{
+//	while(n != NULL)
+//	{
+//		printf("List: ");
+//		print_nodes((struct node *)(n->data));
+//		printf("\n");
+//		n = n->next;	
+//	}
+//}
 
 void test_apriori(void **state)
 {
@@ -716,6 +716,149 @@ void test_check_minsup(void **state)
 	free_hash_tree(ht);
 }
 
+void test_generate(void **state)
+{
+	struct hash_tree *ht = NULL;
+	init_hash_tree(&ht,3);
+	
+	struct node *test = NULL;
+	struct node *test_2 = NULL;
+	struct node *cand_list_final = NULL;
+	int32_t *temp = NULL;
+	temp = malloc(sizeof(int32_t));
+	*temp = 1;
+	add(&test,(void *) temp,1);
+	temp = malloc(sizeof(int32_t));
+	*temp = 2;
+	add(&test,(void *)temp,1);
+	temp = malloc(sizeof(int32_t));
+	*temp = 3;
+	add(&test,(void *)temp,1);
+	add(&test_2,(void *)test,1);
+	
+	
+	test = NULL;
+	temp = malloc(sizeof(int32_t));
+	*temp = 1;
+	add(&test,(void *) temp,1);
+	temp = malloc(sizeof(int32_t));
+	*temp = 2;
+	add(&test,(void *)temp,1);
+	temp = malloc(sizeof(int32_t));
+	*temp = 8;
+	add(&test,(void *)temp,1);
+	add(&test_2,(void *)test,1);
+	
+	cand_list_final = generate(&test_2,1.1,ht);
+	
+	free_hash_tree(ht);
+	free_list_of_lists(&cand_list_final);
+	free_list_of_lists(&test_2);
+	
+}
+
+void test_get_subsets_of(void **state)
+{
+	struct node *test = NULL;
+	struct node *test_2 = NULL;
+	
+	int32_t *temp = NULL;
+	temp = malloc(sizeof(int32_t));
+	*temp = 1;
+	add(&test,(void *) temp,1);
+	temp = malloc(sizeof(int32_t));
+	*temp = 2;
+	add(&test,(void *)temp,1);
+	temp = malloc(sizeof(int32_t));
+	*temp = 3;
+	add(&test,(void *)temp,1);
+
+	test_2 = get_subsets_of(test);
+	
+	print_lists(test_2);
+	
+	free_list(&test_2,&free_ints);
+	free_list(&test,&free_ints);
+}
+
+void test_check_item_last(void **state)
+{
+	struct node *head = NULL;
+	uint32_t *temp = malloc(sizeof(uint32_t));
+	*temp = 1;
+	add(&head,(void *)temp,1);
+	temp = malloc(sizeof(uint32_t));
+	*temp = 2;
+	add(&head,(void *)temp,1);
+	temp = malloc(sizeof(uint32_t));
+	*temp = 3;
+	add(&head,(void *)temp,1);
+	temp = malloc(sizeof(uint32_t));
+	*temp = 4;
+	add(&head,(void *)temp,1);
+	
+	struct node *head_2 = NULL;
+	temp = malloc(sizeof(uint32_t));
+	*temp = 2;
+	add(&head_2,(void *)temp,1);
+	temp = malloc(sizeof(uint32_t));
+	*temp = 5;
+	add(&head_2,(void *)temp,1);
+	temp = malloc(sizeof(uint32_t));
+	*temp = 1;
+	add(&head_2,(void *)temp,1);
+	temp = malloc(sizeof(uint32_t));
+	*temp = 6;
+	add(&head_2,(void *)temp,1);
+	
+	assert_true(check_item_last(head,head_2)== NULL);
+	
+	
+	
+	free_list(&head_2,&free_ints);
+	head_2 = NULL;
+	temp = malloc(sizeof(uint32_t));
+	*temp = 1;
+	add(&head_2,(void *)temp,1);
+	temp = malloc(sizeof(uint32_t));
+	*temp = 2;
+	add(&head_2,(void *)temp,1);
+	temp = malloc(sizeof(uint32_t));
+	*temp = 3;
+	add(&head_2,(void *)temp,1);
+	temp = malloc(sizeof(uint32_t));
+	*temp = 5;
+	add(&head_2,(void *)temp,1);
+	
+	struct node *ll = check_item_last(head,head_2);
+	assert_int_equal(*((int *)ll->data),1);
+	assert_int_equal(*((int *)ll->next->data),2);
+	assert_int_equal(*((int *)ll->next->next->data),3);
+	assert_int_equal(*((int *)ll->next->next->next->data),4);
+	assert_int_equal(*((int *)ll->next->next->next->next->data),5);
+	assert_true(ll->next->next->next->next->next == NULL);
+	
+	free_list(&head_2,&free_ints);
+	head_2 = NULL;
+	temp = malloc(sizeof(uint32_t));
+	*temp = 1;
+	add(&head_2,(void *)temp,1);
+	temp = malloc(sizeof(uint32_t));
+	*temp = 2;
+	add(&head_2,(void *)temp,1);
+	temp = malloc(sizeof(uint32_t));
+	*temp = 4;
+	add(&head_2,(void *)temp,1);
+	temp = malloc(sizeof(uint32_t));
+	*temp = 5;
+	add(&head_2,(void *)temp,1);
+	
+	assert_true(check_item_last(head,head_2)==NULL);
+	
+	free_list(&head,&free_ints);
+	free_list(&head_2,&free_ints);
+}
+
 int main(int argc, char* argv[]) 
 {
 	UnitTest tests[] = 
@@ -741,7 +884,10 @@ int main(int argc, char* argv[])
 		unit_test(test_add_trans),
 		unit_test(test_subset),
 		unit_test(test_is_subset),
-		unit_test(test_check_minsup)
+		unit_test(test_check_minsup),
+		unit_test(test_generate),
+		unit_test(test_check_item_last),
+		unit_test(test_get_subsets_of)
 		
 	};
 	return run_tests(tests);

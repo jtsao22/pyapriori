@@ -101,17 +101,20 @@ int expand_node(struct hash_tree_node *ht_node, int threshold)
 	
 void free_hash_tree_node(struct hash_tree_node *ht_node) 
 {
-	if(ht_node->children != NULL)
+	if(ht_node != NULL)
 	{
-		free_hash_map(&ht_node->children);
-		
+		if(ht_node->children != NULL)
+		{
+			free_hash_map(&ht_node->children);
+			
+		}
+		if(ht_node->item_lists != NULL)
+		{
+			free_list_of_lists(&ht_node->item_lists);
+		}
+		free(ht_node);
+		ht_node = NULL;
 	}
-	if(ht_node->item_lists != NULL)
-	{
-		free_list_of_lists(&ht_node->item_lists);
-	}
-	free(ht_node);
-	ht_node = NULL;
 }
 
 
@@ -139,9 +142,10 @@ void init_hash_tree(struct hash_tree **ht, unsigned char threshold)
 void reinit_hash_tree(struct hash_tree *ht)
 {
 	free_hash_tree_node(ht->root);
-	ht->root = NULL;
 	free_list(&ht->cand_list_final,&free_ints);
-	ht->cand_list_final = NULL;
+	free_list(&ht->l_k_set,&free_ints);
+	
+	
 }
 
 void add_trans(struct hash_tree **ht,struct node *trans)

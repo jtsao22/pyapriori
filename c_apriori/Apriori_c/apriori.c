@@ -10,48 +10,175 @@ extern void* _test_malloc(const size_t size, const char* file, const int line);
 extern void _test_free(void* const ptr, const char* file, const int line);
 #define malloc(size) _test_malloc(size, __FILE__, __LINE__)
 #define free(ptr) _test_free(ptr, __FILE__, __LINE__)
-#endif 
+#endif
 
 
 struct node* apriori(double minsup, int w_size,
-		char *i_file, char *o_file, int d_window, int node_threshold)
+		char *i_file, char *o_file, int d_window, unsigned char node_threshold)
 {
 	struct node *transaction_list = parser(i_file, w_size,d_window);
-	
+
 	struct node *L_1 = one_item_sets(transaction_list,&minsup);
 
 	struct node *L_kminusone_set = L_1;
-	
+
 	printf("Minsup: %g\n",minsup);
-	
+
 	int k = 2;
 	struct node *cand_trans_list = NULL;
 	struct node *cand_list_final = NULL;
 
-	struct hash_map *hm = NULL;
-	initialize_hash_map(&hm);
-//	int *temp = malloc(sizeof(int));
-//	*temp = 4;
-//	insert_in_hash(hm,22,(void *)temp);
-//	temp = malloc(sizeof(int));
-//	*temp = 5;
-//	insert_in_hash(hm,22,(void *)temp);
-//	void *data = get_data_from_hash(hm,22);
-//	printf("%i\n",*((int *)(data)));
-	free_hash_map(&hm);
-	
-	//free(temp);
-	
-	
-	return L_1;
-			
-}			
+	struct hash_tree *ht = NULL;
+	init_hash_tree(&ht,node_threshold);
 
+//	while(L_kminusone_set != NULL)
+	{
+		reinit_hash_tree(ht);
+		
+	}
+
+
+	free_hash_tree(ht);
+	return L_1;
+
+}
+
+void print_lists(struct node *n)
+{
+	while(n != NULL)
+	{
+		printf("List: ");
+		print_nodes((struct node *)(n->data));
+		printf("\n");
+		n = n->next;	
+	}
+}
+
+struct node *generate(struct node **f_item_list,double minsup,
+		struct hash_tree *ht)
+{
+	*f_item_list = mergesort(*f_item_list,&compare_lists);
+	
+	/* Join Step of Generate function */
+	
+	/* Join Step Variable Declarations */ 
+	struct node *trans_1 = *f_item_list;
+	struct node *trans_2 = NULL;
+	struct node *check = NULL;
+	struct node *cand_trans_list = NULL; 
+	
+	/* Prune Step Variable Declarations */
+	struct node *subsets;
+	struct node *temp_list;
+	struct node *item_list;
+	struct node *removed_lists = NULL;
+	struct node *checked_sets = NULL;
+	
+	
+	while(trans_1 != NULL)
+	{
+		trans_2 = trans_1->next;
+		while(trans_2 != NULL)
+		{
+			check = copy_list(check_item_last(trans_1->data,trans_2->data));
+			if(check != NULL)
+				add(&cand_trans_list,(void *)check,1);	
+			trans_2 = trans_2->next;
+		}
+		trans_1 = trans_1->next;
+	}
+	
+	print_lists(cand_trans_list);
+	
+	/* Prune Step of Generate function */ 
+	
+	item_list = cand_trans_list;
+	
+	while(item_list != NULL)
+	{
+		temp_list = NULL;
+		subsets = NULL;
+		
+		item_list = item_list->next;
+	}
+	
+		
+	
+	
+	
+	return cand_trans_list;
+}
+
+struct node *get_subsets_of(struct node *item_list)
+{
+	struct node *temp_list = NULL;
+	struct node *iter = item_list;
+	struct node *iter_2 = NULL;
+	struct node *return_list = NULL;
+	uint32_t *temp = NULL;
+	
+	while(iter != NULL)
+	{
+		iter_2 = item_list;	
+		while(iter_2 != iter)
+		{
+			temp = malloc(sizeof(uint32_t));
+			*temp = *((int *)iter_2->data);
+			add(&temp_list,(void *)temp,1);
+			iter_2 = iter_2->next;
+		}
+		
+		iter_2 = iter->next;
+		while(iter_2 != NULL)
+		{
+			temp = malloc(sizeof(uint32_t));
+			*temp = *((int *)iter_2->data);
+			add(&temp_list,(void *)temp,1);
+			iter_2 = iter_2->next;
+		}
+		add(&return_list,(void *)temp_list,1);
+		temp_list = NULL;
+		
+		iter = iter->next;
+	}
+}
+
+
+
+
+struct node *check_item_last(struct node *trans_1, struct node *trans_2)
+{
+	if(trans_1 == NULL || trans_2 == NULL)
+		return NULL;
+	
+	struct node *iter_1 = trans_1;
+	struct node *iter_2 = trans_2;
+	
+	while(iter_1->next != NULL)
+	{
+		if(*((int *)iter_1->data) != *((int *)iter_2->data))
+		{
+			return NULL;
+		}
+		iter_1 = iter_1->next;
+		iter_2 = iter_2->next;
+	}
+	if(*((int *)iter_1->data) != *((int *)iter_2->data))
+	{
+		uint32_t *temp = malloc(sizeof(uint32_t));
+		*temp = *((uint32_t *)iter_2->data);
+		iter_1 = trans_1;
+		add(&iter_1,(void *)temp,1);
+		return iter_1;
+	}
+	else
+		return NULL;
+}
 
 struct node* one_item_sets(struct node* T, double *minsup)
 {
 	struct node *iter = T;
-	struct node *all_trans_list = NULL; 
+	struct node *all_trans_list = NULL;
 	int total_num_trans = 0;
 	uint32_t *temp = NULL;
 	while(iter != NULL)
@@ -74,17 +201,17 @@ struct node* one_item_sets(struct node* T, double *minsup)
 		total_num_trans++;
 		iter = iter->next;
 	}
-	
-	/* calculate the finite minsup number out of the percentage and total */ 
+
+	/* calculate the finite minsup number out of the percentage and total */
 	*minsup = (*minsup) * total_num_trans;
 
 	free_list_of_lists(&T);
-	
+
 	all_trans_list = mergesort(all_trans_list,&compare_ints);
-	
-	/* set iterator for all_trans_list and initialize variables */ 
+
+	/* set iterator for all_trans_list and initialize variables */
 	iter = all_trans_list;
-	
+
 	struct node *item_list = NULL;
 	struct node *temp_list = NULL;
 	temp = NULL;
@@ -106,7 +233,7 @@ struct node* one_item_sets(struct node* T, double *minsup)
 		 				exit(0);
 		 			}
 				}
-				
+
 				if(!add(&item_list,(void *)temp_list,count))
 				{
 					printf("Error with Memory Allocation");
@@ -123,9 +250,9 @@ struct node* one_item_sets(struct node* T, double *minsup)
 			count++;
 		}
 		iter = iter->next;
-		
+
 	}
-	/* add last transaction */ 
+	/* add last transaction */
 	if(count > *minsup)
 	{
 		temp = malloc(sizeof(uint32_t));
@@ -146,7 +273,7 @@ struct node* one_item_sets(struct node* T, double *minsup)
 	}
 
 	free_list(&all_trans_list,&free_ints);
-	
+
 	return item_list;
 }
 
@@ -166,41 +293,41 @@ struct node* parser(char* file_name,int w_size, int d_wind)
 	{
 		return NULL;
 	}
-	
+
 	// get the token list
 	struct node* token_list = get_token_list(fp);
-	
+
 	if(d_wind == FALSE)
 	{
 		//get the windows w/o dynamic windowing
 		list_of_parses = get_windows(token_list, w_size);
-		
+
 	}
 	else
 	{
-		/* get the windows w/dynamic windowing */ 
+		/* get the windows w/dynamic windowing */
 		list_of_parses = get_dynamic_windows(token_list);
 	}
 	//sort the list
 	list_of_parses = mergesort(list_of_parses,&compare_lists);
-	
-	/* find average window size and max window size */ 
+
+	/* find average window size and max window size */
 
 	struct node* iter = list_of_parses;
-	
+
 	int total_window_size = 0;
 	int max_window_size = 0;
 	int temp;
-	
+
 	while(iter != NULL)
 	{
 		temp = get_len_list((struct node*)(iter->data));
 		total_window_size += temp;
 		if(max_window_size < temp)
 			max_window_size = temp;
-		iter = iter->next;	
+		iter = iter->next;
 	}
-	
+
 	printf("Average Window Size: ");
 	if(get_len_list((struct node*)(list_of_parses)) > 0)
 	{
@@ -209,7 +336,7 @@ struct node* parser(char* file_name,int w_size, int d_wind)
 	printf("Max Window Size: ");
 	printf("%i\n",max_window_size);
 
-	/*cleanup */ 
+	/*cleanup */
 	free_list(&token_list,&free_ints);
 	fclose(fp);
 
@@ -232,16 +359,16 @@ struct node* get_windows(struct node* token_list, int w_size)
  	int end_point = get_len_list(token_list)-w_size +1;
 
  	while(current != NULL && k < end_point)
- 	{ 
+ 	{
  		temp_token = current;
  		token = k;
  		while(temp_token != NULL && token < k + w_size)
  		{
  			value = *((uint32_t *)temp_token->data);
-		
-			/* this check_inside function checks if *temp is in side 
+
+			/* this check_inside function checks if *temp is in side
 			 * parse_list by parsing through the list. This means we
-			 * assume a fairly small window size for performance */ 
+			 * assume a fairly small window size for performance */
 			if(!check_inside(value, parse_list))
 			{
 				temp = (uint32_t *)malloc(sizeof(uint32_t));
@@ -251,9 +378,9 @@ struct node* get_windows(struct node* token_list, int w_size)
 	 				printf("Error while reading from file");
 	 				exit(0);
 	 			}
-	 		
+
 			}
-		
+
 			if(iter < w_size -1)
  				iter++;
  			else
@@ -261,15 +388,15 @@ struct node* get_windows(struct node* token_list, int w_size)
  				parse_list = mergesort(parse_list,&compare_ints);
  				add(&list_of_parses,(void *)parse_list,1);
  				parse_list = NULL;
- 				iter = 0;					
+ 				iter = 0;
  			}
  			temp_token = temp_token->next;
  			token++;
- 			
- 		} 	
+
+ 		}
  		current = current->next;
  		k++;
- 				
+
  	}
  	return list_of_parses;
 }
@@ -282,7 +409,7 @@ int check_inside(int value, struct node *list)
 			return TRUE;
 		list = list->next;
 	}
-	
+
 	return FALSE;
 }
 
@@ -340,13 +467,13 @@ struct node* get_dynamic_windows(struct node* token_list)
 				}
 			}
 			parse_list = NULL;
-		}	
+		}
 		start_t = start_t->next;
-		
-			
+
+
 	}
 	return list_of_parses;
-	
+
 }
 
 struct node* get_token_list(FILE* fp)
@@ -354,12 +481,12 @@ struct node* get_token_list(FILE* fp)
 	char *s;
 	struct node *head = NULL;
 	uint32_t *temp = NULL;
-		
+
 	while(!feof(fp))
 	{
-		
+
 		if(fscanf(fp,"%as",&s) > 0)
-		{	
+		{
 			temp = malloc(sizeof(uint32_t));
 			*temp = atoi(s);
 			if(!add(&head,(void *) temp,1))
@@ -367,23 +494,23 @@ struct node* get_token_list(FILE* fp)
 				printf("Error while reading from file");
 				exit(1);
 			}
-			
+
 		}
 		else
 			break;
-			
-	}	
-	
+
+	}
+
 	return head;
-	
+
 }
 
 
 
 FILE* read_file(char* file_name)
 {
-	
-	
+
+
 	FILE *fp;
 
 	if((fp=fopen(file_name,"r"))==NULL)
@@ -393,8 +520,8 @@ FILE* read_file(char* file_name)
 	}
 
 	return fp;
-		
-	
+
+
 }
 
 

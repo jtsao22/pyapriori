@@ -59,6 +59,8 @@ struct hash_tree
 
 void init_hash_tree(struct hash_tree **ht, unsigned char threshold);
 
+void reinit_hash_tree(struct hash_tree *ht);
+
 void add_trans(struct hash_tree **ht,struct node *data);
 
 void add_trans_recursive(struct hash_tree *ht,struct hash_tree_node *ht_node, 

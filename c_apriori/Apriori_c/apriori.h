@@ -22,7 +22,16 @@ struct Transaction
 };
 
 struct node* apriori(double minsup, int w_size,
-		char *i_file, char *o_file, int d_window, int node_threshold);
+		char *i_file, char *o_file, int d_window, unsigned char node_threshold);
+
+struct node *generate(struct node **f_item_list,double minsup,
+		struct hash_tree *ht);
+		
+struct node *get_subsets_of(struct node *item_list);
+		
+struct node *check_item_last(struct node *trans_1, struct node *trans_2);
+		
+void print_lists(struct node *n);
 
 struct node* parser(char* file_name,int w_size, int d_wind);
 
