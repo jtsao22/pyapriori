@@ -244,7 +244,7 @@ def generate(f_item_list,minsup,ht): # used to find the candidate
                 inside = 0
 
                 for item in f_item_list:
-                    if set(iter).issubset(item.item_set):
+                    if set(iter) == item.item_set:
                         inside = 1
                         break
 
@@ -253,7 +253,7 @@ def generate(f_item_list,minsup,ht): # used to find the candidate
                     if item_list not in removed_list:
                         cand_trans_list.remove(item_list)
                         removed_list.append(item_list)
-
+                        break
 
     for item_list in cand_trans_list:
         trans = Transaction(set(item_list))
