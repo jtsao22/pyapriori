@@ -751,6 +751,9 @@ void test_generate(void **state)
 	
 	cand_list_final = generate(&test_2,1.1,ht);
 	
+	printf("Cand_list_final: \n");
+	print_lists(cand_list_final);
+	
 	free_hash_tree(ht);
 	free_list_of_lists(&cand_list_final);
 	free_list_of_lists(&test_2);
@@ -761,6 +764,7 @@ void test_get_subsets_of(void **state)
 {
 	struct node *test = NULL;
 	struct node *test_2 = NULL;
+	struct node *test_3 = NULL;
 	
 	int32_t *temp = NULL;
 	temp = malloc(sizeof(int32_t));
@@ -777,7 +781,16 @@ void test_get_subsets_of(void **state)
 	
 	print_lists(test_2);
 	
-	free_list(&test_2,&free_ints);
+	temp = malloc(sizeof(int32_t));
+	*temp = 4;
+	add(&test,(void *)temp,1);
+	
+	test_3 = get_subsets_of(test);
+	
+	print_lists(test_3);
+	
+	free_list_of_lists(&test_3);
+	free_list_of_lists(&test_2);
 	free_list(&test,&free_ints);
 }
 
@@ -859,6 +872,174 @@ void test_check_item_last(void **state)
 	free_list(&head_2,&free_ints);
 }
 
+void test_is_inside(void **state)
+{
+	struct node *test = NULL;
+	struct node *test_2 = NULL;
+	int32_t *temp = NULL;
+	temp = malloc(sizeof(int32_t));
+	*temp = 1;
+	add(&test,(void *) temp,1);
+	temp = malloc(sizeof(int32_t));
+	*temp = 2;
+	add(&test,(void *)temp,1);
+	temp = malloc(sizeof(int32_t));
+	*temp = 3;
+	add(&test,(void *)temp,1);
+	add(&test_2,(void *)test,1);
+	
+	test = NULL;
+	temp = malloc(sizeof(int32_t));
+	*temp = 1;
+	add(&test,(void *) temp,1);
+	temp = malloc(sizeof(int32_t));
+	*temp = 2;
+	add(&test,(void *)temp,1);
+	temp = malloc(sizeof(int32_t));
+	*temp = 8;
+	add(&test,(void *)temp,1);
+	add(&test_2,(void *)test,1);
+	
+	assert_int_equal(is_inside(test_2,test),TRUE);
+	
+	test = NULL;
+	temp = malloc(sizeof(int32_t));
+	*temp = 1;
+	add(&test,(void *) temp,1);
+	temp = malloc(sizeof(int32_t));
+	*temp = 3;
+	add(&test,(void *)temp,1);
+	temp = malloc(sizeof(int32_t));
+	*temp = 8;
+	add(&test,(void *)temp,1);
+	
+	assert_int_equal(is_inside(test_2,test),FALSE);
+	
+	free_list(&test,&free_ints);
+	
+		test = NULL;
+	temp = malloc(sizeof(int32_t));
+	*temp = 1;
+	add(&test,(void *) temp,1);
+	temp = malloc(sizeof(int32_t));
+	*temp = 2;
+	add(&test,(void *)temp,1);
+	temp = malloc(sizeof(int32_t));
+	*temp = 4;
+	add(&test,(void *)temp,1);
+	
+	assert_int_equal(is_inside(test_2,test),FALSE);
+	
+	free_list(&test,&free_ints);
+	free_list_of_lists(&test_2);
+}
+
+void test_remove_list(void **state)
+{
+	struct node *test = NULL;
+	struct node *test_2 = NULL;
+	int32_t *temp = NULL;
+	temp = malloc(sizeof(int32_t));
+	*temp = 1;
+	add(&test,(void *) temp,1);
+	temp = malloc(sizeof(int32_t));
+	*temp = 2;
+	add(&test,(void *)temp,1);
+	temp = malloc(sizeof(int32_t));
+	*temp = 3;
+	add(&test,(void *)temp,1);
+	add(&test_2,(void *)test,1);
+	
+	test = NULL;
+	temp = malloc(sizeof(int32_t));
+	*temp = 1;
+	add(&test,(void *) temp,1);
+	temp = malloc(sizeof(int32_t));
+	*temp = 2;
+	add(&test,(void *)temp,1);
+	temp = malloc(sizeof(int32_t));
+	*temp = 8;
+	add(&test,(void *)temp,1);
+	add(&test_2,(void *)test,1);
+	
+	test = NULL;
+	temp = malloc(sizeof(int32_t));
+	*temp = 1;
+	add(&test,(void *) temp,1);
+	temp = malloc(sizeof(int32_t));
+	*temp = 2;
+	add(&test,(void *)temp,1);
+	temp = malloc(sizeof(int32_t));
+	*temp = 8;
+	add(&test,(void *)temp,1);
+	
+	
+	/* test deletion from end/mid */ 
+	printf("Original: \n");
+	print_lists(test_2);
+	remove_list(&test_2,test);
+	printf("Removed: \n");
+	print_lists(test_2);
+	
+	free_list(&test,&free_ints);
+	
+	
+	test = NULL;
+	temp = malloc(sizeof(int32_t));
+	*temp = 1;
+	add(&test,(void *) temp,1);
+	temp = malloc(sizeof(int32_t));
+	*temp = 2;
+	add(&test,(void *)temp,1);
+	temp = malloc(sizeof(int32_t));
+	*temp = 8;
+	add(&test,(void *)temp,1);
+	add(&test_2,(void *)test,1);
+	
+	test = NULL;
+	temp = malloc(sizeof(int32_t));
+	*temp = 1;
+	add(&test,(void *) temp,1);
+	temp = malloc(sizeof(int32_t));
+	*temp = 2;
+	add(&test,(void *)temp,1);
+	temp = malloc(sizeof(int32_t));
+	*temp = 3;
+	add(&test,(void *)temp,1);
+	
+	/* test deletion from beginning */ 
+	printf("Original: \n");
+	print_lists(test_2);
+	remove_list(&test_2,test);
+	printf("Removed: \n");
+	print_lists(test_2);
+	
+	free_list(&test,&free_ints);
+	
+	test = NULL;
+	temp = malloc(sizeof(int32_t));
+	*temp = 2;
+	add(&test,(void *) temp,1);
+	temp = malloc(sizeof(int32_t));
+	*temp = 4;
+	add(&test,(void *)temp,1);
+	temp = malloc(sizeof(int32_t));
+	*temp = 5;
+	add(&test,(void *)temp,1);
+	
+	/* test list thats not in list of lists*/ 
+	printf("Original: \n");
+	print_lists(test_2);
+	remove_list(&test_2,test);
+	printf("Removed: \n");
+	print_lists(test_2);
+	
+	free_list(&test,&free_ints);
+	free_list_of_lists(&test_2);
+
+}
+
+
 int main(int argc, char* argv[]) 
 {
 	UnitTest tests[] = 
@@ -887,7 +1068,9 @@ int main(int argc, char* argv[])
 		unit_test(test_check_minsup),
 		unit_test(test_generate),
 		unit_test(test_check_item_last),
-		unit_test(test_get_subsets_of)
+		unit_test(test_get_subsets_of),
+		unit_test(test_is_inside),
+		unit_test(test_remove_list)
 		
 	};
 	return run_tests(tests);

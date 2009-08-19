@@ -26,10 +26,15 @@ void *get_data(struct node *n, int index);
 struct node *get_node(struct node *n, int index);
 
 struct node *copy_list(struct node *n);
+
+unsigned char is_inside(struct node *list_of_lists, struct node *list);
+
+unsigned char same_list(struct node *l_1, struct node *l_2);
+
+unsigned char remove_list(struct node **list_of_lists, struct node *list);
+
 void free_ints(void *data);
 void free_list(struct node **n,void (*free_funct)(void *));
-
-
 void free_list_of_lists(struct node **n);
 
 struct node *mergesort(struct node *head,int (*cmp)(void *,void *));

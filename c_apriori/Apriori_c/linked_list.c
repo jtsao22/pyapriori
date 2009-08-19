@@ -57,6 +57,93 @@ int add(struct node **n, void* d, int count)
 	
 }
 
+unsigned char is_inside(struct node *list_of_lists, struct node *list)
+{
+	struct node *iter = list_of_lists;
+	struct node *l_iter;
+	struct node *temp;
+	unsigned char inside;
+	
+	while(iter != NULL)
+	{
+		inside = TRUE;
+		temp = (struct node *)iter->data;
+		l_iter = list;
+		while(temp != NULL)
+		{
+			if(*((int *)temp->data) != *((int *)l_iter->data))
+				inside = FALSE;
+			l_iter = l_iter->next;
+			temp = temp->next;
+		}
+		if(inside == TRUE)
+			return TRUE;
+		iter = iter->next;
+	}
+	
+	return FALSE;
+}
+
+unsigned char remove_list(struct node **list_of_lists, struct node *list)
+/* Removes list from list_of_lists */ 
+{
+	if(list_of_lists == NULL)
+		return FALSE;
+	struct node *iter = *list_of_lists;
+	struct node *temp;
+	unsigned char inside = FALSE;
+	
+	if(iter == NULL || list == NULL)
+		return FALSE;
+	
+	if(same_list((struct node *)iter->data,list))
+	{
+		*list_of_lists = iter->next;
+		printf("%i",*list_of_lists);
+		iter->next = NULL;
+		free_list_of_lists(&iter);
+		return TRUE;
+	}
+	
+	while(iter->next != NULL)
+	{
+		if(same_list((struct node *)iter->next->data,list))
+		{
+			inside = TRUE;
+			break;
+		}	
+		iter = iter->next;
+	}
+	
+	if(inside == TRUE)
+	{
+		temp = iter->next->next;
+		printf("%i",temp);
+		iter->next->next = NULL;
+		free_list_of_lists(&iter->next);
+		iter->next = temp;
+		return TRUE;
+	}
+	else
+		return FALSE;
+	
+	
+}
+
+unsigned char same_list(struct node *l_1, struct node *l_2)
+{
+	struct node *iter_1 = l_1;
+	struct node *iter_2 = l_2;
+	while(iter_1 != NULL && iter_2 != NULL)
+	{
+		if(*((int *)iter_1->data) != *((int *)iter_2->data))
+			return FALSE;
+		iter_1 = iter_1->next;
+		iter_2 = iter_2->next;
+	}
+	return TRUE;
+}
+
 
 void free_list(struct node **n,void (*free_funct)(void *))
 {

@@ -71,8 +71,13 @@ struct node *generate(struct node **f_item_list,double minsup,
 	struct node *subsets;
 	struct node *temp_list;
 	struct node *item_list;
+	struct node *copy;
+	struct node *iter;
+	struct node *next;
+	unsigned char inside;
 	struct node *removed_lists = NULL;
 	struct node *checked_sets = NULL;
+	
 	
 	
 	while(trans_1 != NULL)
@@ -98,19 +103,65 @@ struct node *generate(struct node **f_item_list,double minsup,
 	{
 		temp_list = NULL;
 		subsets = NULL;
+		subsets = get_subsets_of((struct node *)item_list->data);
+		
+		iter = subsets;
+		
+		
+		while(iter != NULL)
+		{
+			next = iter->next;
+			if(!is_inside(checked_sets,(struct node *)iter->data))
+			{
+				copy = copy_list((struct node *)iter->data);
+				add(&checked_sets,copy,1);
+				inside = FALSE;
+				
+				trans_1 = *f_item_list;
+				
+				while(trans_1 != NULL)
+				{
+//					printf("trans_1->data: ");
+//					print_nodes((struct node *)trans_1->data);
+//					printf("\n iter: ");
+//					print_nodes((struct node *)iter->data);
+					if(is_subset((struct node *)trans_1->data,
+							(struct node *)iter->data))
+					{
+						inside = TRUE;
+						break;
+					}
+					trans_1 = trans_1->next;
+				}
+				
+				if(inside == FALSE)
+				{
+//					printf("ORIGINAL: \n");
+//					print_lists(cand_trans_list);
+//					printf("Remove this: ");
+//					print_nodes((struct node *)item_list->data);
+					remove_list(&cand_trans_list,(struct node *)item_list->data);
+//					printf("\nREMOVED: \n");
+//					print_lists(cand_trans_list);
+				}
+			}	
+			iter = next;
+		}
+		
+		free_list_of_lists(&subsets);
+
 		
 		item_list = item_list->next;
 	}
-	
-		
-	
-	
-	
+
+	free_list_of_lists(&checked_sets);	
+	free_list_of_lists(&removed_lists);
 	return cand_trans_list;
 }
 
 struct node *get_subsets_of(struct node *item_list)
 {
+	int t;
 	struct node *temp_list = NULL;
 	struct node *iter = item_list;
 	struct node *iter_2 = NULL;
@@ -123,24 +174,36 @@ struct node *get_subsets_of(struct node *item_list)
 		while(iter_2 != iter)
 		{
 			temp = malloc(sizeof(uint32_t));
+			
 			*temp = *((int *)iter_2->data);
+			t = *temp;
 			add(&temp_list,(void *)temp,1);
 			iter_2 = iter_2->next;
 		}
 		
 		iter_2 = iter->next;
+		printf("%i",iter->next);
 		while(iter_2 != NULL)
 		{
+			/* ERRRRRRRRRRRRRORRR IS HERE                               */ 
 			temp = malloc(sizeof(uint32_t));
-			*temp = *((int *)iter_2->data);
+			*temp = *((uint32_t *)iter_2->data);
+			t = *temp;
+			printf("t: %i\n",t);
 			add(&temp_list,(void *)temp,1);
 			iter_2 = iter_2->next;
+			
 		}
+		printf("temp_list: ");
+		print_nodes(temp_list);
+		printf("\n");
 		add(&return_list,(void *)temp_list,1);
 		temp_list = NULL;
 		
 		iter = iter->next;
 	}
+	
+	return return_list;
 }
 
 
