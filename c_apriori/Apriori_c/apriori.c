@@ -71,11 +71,11 @@ struct node *generate(struct node **f_item_list,double minsup,
 	struct node *subsets;
 	struct node *temp_list;
 	struct node *item_list;
+	struct node *removed_list;
 	struct node *copy;
 	struct node *iter;
 	struct node *next;
 	unsigned char inside;
-	struct node *removed_lists = NULL;
 	struct node *checked_sets = NULL;
 	
 	
@@ -84,8 +84,8 @@ struct node *generate(struct node **f_item_list,double minsup,
 	{
 		trans_2 = trans_1->next;
 		while(trans_2 != NULL)
-		{
-			check = copy_list(check_item_last(trans_1->data,trans_2->data));
+		{			
+			check = check_item_last(trans_1->data,trans_2->data);
 			if(check != NULL)
 				add(&cand_trans_list,(void *)check,1);	
 			trans_2 = trans_2->next;
@@ -93,24 +93,25 @@ struct node *generate(struct node **f_item_list,double minsup,
 		trans_1 = trans_1->next;
 	}
 	
+	printf("Cand_trans_list before prune: \n");
 	print_lists(cand_trans_list);
 	
 	/* Prune Step of Generate function */ 
-	
 	item_list = cand_trans_list;
+	
 	
 	while(item_list != NULL)
 	{
+		
+		next = item_list->next;
 		temp_list = NULL;
 		subsets = NULL;
 		subsets = get_subsets_of((struct node *)item_list->data);
 		
 		iter = subsets;
-		
-		
+	
 		while(iter != NULL)
 		{
-			next = iter->next;
 			if(!is_inside(checked_sets,(struct node *)iter->data))
 			{
 				copy = copy_list((struct node *)iter->data);
@@ -118,14 +119,9 @@ struct node *generate(struct node **f_item_list,double minsup,
 				inside = FALSE;
 				
 				trans_1 = *f_item_list;
-				
 				while(trans_1 != NULL)
 				{
-//					printf("trans_1->data: ");
-//					print_nodes((struct node *)trans_1->data);
-//					printf("\n iter: ");
-//					print_nodes((struct node *)iter->data);
-					if(is_subset((struct node *)trans_1->data,
+					if(same_list((struct node *)trans_1->data,
 							(struct node *)iter->data))
 					{
 						inside = TRUE;
@@ -136,26 +132,28 @@ struct node *generate(struct node **f_item_list,double minsup,
 				
 				if(inside == FALSE)
 				{
-//					printf("ORIGINAL: \n");
-//					print_lists(cand_trans_list);
-//					printf("Remove this: ");
-//					print_nodes((struct node *)item_list->data);
 					remove_list(&cand_trans_list,(struct node *)item_list->data);
-//					printf("\nREMOVED: \n");
-//					print_lists(cand_trans_list);
+					break;
 				}
 			}	
-			iter = next;
+			iter = iter->next;
+			
 		}
 		
-		free_list_of_lists(&subsets);
-
+		free_list_of_lists(&subsets);	
+		item_list = next;
 		
+	}
+	
+	item_list = cand_trans_list;
+
+	while(item_list != NULL)
+	{
+		add_trans(&ht,copy_list((struct node *)item_list->data));
 		item_list = item_list->next;
 	}
 
 	free_list_of_lists(&checked_sets);	
-	free_list_of_lists(&removed_lists);
 	return cand_trans_list;
 }
 
@@ -182,21 +180,15 @@ struct node *get_subsets_of(struct node *item_list)
 		}
 		
 		iter_2 = iter->next;
-		printf("%i",iter->next);
 		while(iter_2 != NULL)
 		{
-			/* ERRRRRRRRRRRRRORRR IS HERE                               */ 
 			temp = malloc(sizeof(uint32_t));
 			*temp = *((uint32_t *)iter_2->data);
 			t = *temp;
-			printf("t: %i\n",t);
 			add(&temp_list,(void *)temp,1);
 			iter_2 = iter_2->next;
 			
 		}
-		printf("temp_list: ");
-		print_nodes(temp_list);
-		printf("\n");
 		add(&return_list,(void *)temp_list,1);
 		temp_list = NULL;
 		
@@ -230,7 +222,8 @@ struct node *check_item_last(struct node *trans_1, struct node *trans_2)
 	{
 		uint32_t *temp = malloc(sizeof(uint32_t));
 		*temp = *((uint32_t *)iter_2->data);
-		iter_1 = trans_1;
+		iter_1 = NULL;
+		iter_1 = copy_list(trans_1);
 		add(&iter_1,(void *)temp,1);
 		return iter_1;
 	}

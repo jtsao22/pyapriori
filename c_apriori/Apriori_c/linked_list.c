@@ -99,9 +99,8 @@ unsigned char remove_list(struct node **list_of_lists, struct node *list)
 	if(same_list((struct node *)iter->data,list))
 	{
 		*list_of_lists = iter->next;
-		printf("%i",*list_of_lists);
-		iter->next = NULL;
-		free_list_of_lists(&iter);
+		free_list((struct node **)&iter->data,&free_ints);
+		free(iter);
 		return TRUE;
 	}
 	
@@ -111,16 +110,16 @@ unsigned char remove_list(struct node **list_of_lists, struct node *list)
 		{
 			inside = TRUE;
 			break;
-		}	
+		}
 		iter = iter->next;
 	}
 	
 	if(inside == TRUE)
 	{
 		temp = iter->next->next;
-		printf("%i",temp);
-		iter->next->next = NULL;
-		free_list_of_lists(&iter->next);
+		free_list((struct node **)&iter->next->data,&free_ints);
+		free(iter->next);
+		
 		iter->next = temp;
 		return TRUE;
 	}
@@ -136,7 +135,7 @@ unsigned char same_list(struct node *l_1, struct node *l_2)
 	struct node *iter_2 = l_2;
 	while(iter_1 != NULL && iter_2 != NULL)
 	{
-		if(*((int *)iter_1->data) != *((int *)iter_2->data))
+		if(*((uint32_t *)iter_1->data) != *((uint32_t *)iter_2->data))
 			return FALSE;
 		iter_1 = iter_1->next;
 		iter_2 = iter_2->next;
