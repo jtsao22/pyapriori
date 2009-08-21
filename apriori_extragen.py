@@ -414,8 +414,8 @@ if __name__ == '__main__':
             default=False,help="This enables dynamic windowing")
     o_parser.add_option("-m", action="store",dest="minsup",default=0.003,\
             help="This sets the minsup percentage")
-    o_parser.add_option("-w", action="store",dest="w_size",help=\
-            "This sets the window size",default=5)
+    o_parser.add_option("-w", action="store",type="int",dest="w_size",help=\
+            "This sets the window size",default=3)
     o_parser.add_option("-t", action="store",dest="threshold",help=\
             "This sets the node threshold",default=3)
 
