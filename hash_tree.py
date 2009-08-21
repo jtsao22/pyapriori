@@ -157,11 +157,26 @@ class Hash_tree:
     def subset_recursive(self,node,num_to_hash,t_list,t):
         if node.get_parent() == None:      # if root, hash on every item
                                             # in t
-            for item in t_list:
-                if item in node.children.keys():
-                    child = node.children[item]
-                    debug1("@ root: " + str(item))
-                    self.subset_recursive(child,num_to_hash+1,t_list,t)
+            if node.get_state() == 1:
+                for item in t_list:
+                    if item in node.children.keys():
+                        child = node.children[item]
+                        debug1("@ root: " + str(item))
+                        self.subset_recursive(child,num_to_hash+1,t_list,t)
+            else:
+                debug1("t.item_set: " + str(t.item_set))
+                for index,item_set in enumerate(node.item_sets):
+                    debug1("item_set: " + str(item_set))
+
+                    if item_set.issubset(t.item_set):
+                        if item_set == set(['1','3','5']):
+                            debug("transaction when set is 135: " +\
+                                    str(t))
+                        debug1(str(node.trans_list[index])+ " appended")
+                        self.cand_list_final.append(node.trans_list[index])
+
+
+
         else:                   # if not root, check interior or leaf
             if node.get_state() == 0: # if leaf, find ones in T
                 debug1("t.item_set: " + str(t.item_set))

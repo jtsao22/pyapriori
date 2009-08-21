@@ -246,9 +246,18 @@ struct node *copy_list(struct node *n)
 	return copy;
 }
 
-
-
-
+struct node *copy_list_of_lists(struct node *n)
+{
+	struct node *iter = n;
+	struct node *copy = NULL;
+	
+	while(iter != NULL)
+	{
+		add(&copy,copy_list((struct node *)iter->data),iter->count);
+		iter = iter->next;
+	}
+	return copy;
+}
 
 int compare_ints(void* first, void* second)
 {

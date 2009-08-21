@@ -102,7 +102,7 @@ void free_hash_map(struct hash_map **hm)
 		while(current != NULL)
 		{
 			next = current->next;
-			free_hash_tree_node((struct hash_tree_node *)current->data);
+			free_hash_tree_node((struct hash_tree_node **)&current->data);
 			free(current);
 			current = next;
 		}
@@ -117,7 +117,6 @@ void free_hash_map(struct hash_map **hm)
 void insert_in_hash(struct hash_map *hm, uint32_t num,struct hash_tree_node *ht_node)
 {
 	uint32_t converted = hash(num)%100;
-	printf("Converted num: %i\n",converted);
 	if(!add(&hm->hash_table[converted],(void *) ht_node,1))
 	{
 		exit(0);

@@ -40,7 +40,7 @@ void make_interior(struct hash_tree_node *ht_node);
 
 int expand_node(struct hash_tree_node *ht_node, int threshold);
 
-void free_hash_tree_node(struct hash_tree_node *ht_node);
+void free_hash_tree_node(struct hash_tree_node **ht_node);
 
 void free_hash_tree_int_node(void *ht_node);
 

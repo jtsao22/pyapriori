@@ -26,6 +26,7 @@ void *get_data(struct node *n, int index);
 struct node *get_node(struct node *n, int index);
 
 struct node *copy_list(struct node *n);
+struct node *copy_list_of_lists(struct node *n);
 
 unsigned char is_inside(struct node *list_of_lists, struct node *list);
 

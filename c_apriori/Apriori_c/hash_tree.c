@@ -4,6 +4,7 @@
 #include "linked_list.h"
 #include "hash_tree.h"
 #include "hash_map.h"
+#include "apriori.h"
 
 #ifdef CMOCKERY
 extern void* _test_malloc(const size_t size, const char* file, const int line);
@@ -54,9 +55,10 @@ int expand_node(struct hash_tree_node *ht_node, int threshold)
 {
 	int k;
 	uint32_t key;
+	struct node *present;
 	struct hash_tree_node *child = NULL;
 	if(get_num_lists(ht_node) <= threshold)
-		return 0;
+		return FALSE;
 	struct node *next = NULL;
 	struct node *iter = ht_node->item_lists;
 	if(ht_node->children == NULL)
@@ -67,11 +69,10 @@ int expand_node(struct hash_tree_node *ht_node, int threshold)
 	{
 		
 		key = *((uint32_t *)get_data((struct node *)iter->data,ht_node->depth));
-		
-		if(ht_node->children->hash_table[key] != NULL)
+		present = get_data_from_hash(ht_node->children,key);
+		if(present != NULL)
 		{
-			child = (struct hash_tree_node *)ht_node->children
-					->hash_table[key]->data;
+			child = present->data;
 		}
 		else
 		{
@@ -81,6 +82,7 @@ int expand_node(struct hash_tree_node *ht_node, int threshold)
 		}
 		
 		add_transaction(child,iter->data);
+		
 		next = iter->next;
 		free(iter);
 		iter = next;
@@ -96,25 +98,26 @@ int expand_node(struct hash_tree_node *ht_node, int threshold)
 					->children->hash_table[k]->data,threshold);
 		}
 	}
-	return 1;
+	return TRUE;
 }
 	
-void free_hash_tree_node(struct hash_tree_node *ht_node) 
+void free_hash_tree_node(struct hash_tree_node **ht_node) 
 {
-	if(ht_node != NULL)
+	if(*ht_node != NULL)
 	{
-		if(ht_node->children != NULL)
+		if((*ht_node)->children != NULL)
 		{
-			free_hash_map(&ht_node->children);
+			free_hash_map(&(*ht_node)->children);
 			
 		}
-		if(ht_node->item_lists != NULL)
+		if((*ht_node)->item_lists != NULL)
 		{
-			free_list_of_lists(&ht_node->item_lists);
+			free_list_of_lists(&(*ht_node)->item_lists);
 		}
-		free(ht_node);
-		ht_node = NULL;
+		free(*ht_node);
+		*ht_node = NULL;
 	}
+	
 }
 
 
@@ -141,9 +144,7 @@ void init_hash_tree(struct hash_tree **ht, unsigned char threshold)
 
 void reinit_hash_tree(struct hash_tree *ht)
 {
-	free_hash_tree_node(ht->root);
-	free_list(&ht->cand_list_final,&free_ints);
-	free_list(&ht->l_k_set,&free_ints);
+	free_hash_tree_node(&ht->root);
 	
 	
 }
@@ -171,7 +172,6 @@ void add_trans_recursive(struct hash_tree *ht,struct hash_tree_node *ht_node,
 	if(ht_node->node_type == interior)
 	{
 		uint32_t num = *((uint32_t *)get_data(trans,depth));
-		
 		struct node *ll = get_data_from_hash(ht_node->children,num);
 		if(ll != NULL)
 		{
@@ -198,7 +198,7 @@ void free_hash_tree(struct hash_tree *ht)
 {
 	if(ht->root != NULL)
 	{
-		free_hash_tree_node(ht->root);
+		free_hash_tree_node(&ht->root);
 	}
 	if(ht->cand_list_final != NULL)
 		free_list_of_lists(&ht->cand_list_final);
@@ -210,24 +210,28 @@ void free_hash_tree(struct hash_tree *ht)
 
 void print_all_tree(struct hash_tree_node *ht_node)
 {
-	if(ht_node->node_type == interior)
+	if(ht_node != NULL)
 	{
-		int k;
-		for(k = 0; k < ht_node->children->size; k++)	
+		if(ht_node->node_type == interior)
 		{
-			if(ht_node->children->hash_table[k] != NULL)
+			int k;
+			
+			printf("In an interior node\n");
+			for(k = 0; k < ht_node->children->size; k++)	
 			{
-				printf("In an interior node\n");
-				print_all_tree((struct hash_tree_node *)ht_node->
-						children->hash_table[k]->data);
-				printf("Out of interior node\n");
+				if(ht_node->children->hash_table[k] != NULL)
+				{
+					print_all_tree((struct hash_tree_node *)ht_node->
+							children->hash_table[k]->data);	
+				}
 			}
-		
+			printf("Out of interior node\n");
 		}
-	}
-	else
-	{
-		print_lists(ht_node->item_lists);
+		else
+		{
+			printf("Leaf node list: \n");
+			print_lists(ht_node->item_lists);
+		}
 	}
 }
 
@@ -248,14 +252,33 @@ void subset_recursive(struct hash_tree *ht, struct hash_tree_node *ht_node,
 	/* if root, hash on every item in trans */ 
 	if(ht_node->parent == NULL)
 	{
-		iter = trans;
-		while(iter != NULL)
+		if(ht_node->node_type == interior)
 		{
-			if((child = get_data_from_hash(ht_node->children,*((uint32_t *)iter->data))))
+			iter = trans;
+			
+			while(iter != NULL)
 			{
-				subset_recursive(ht,(struct hash_tree_node *)child->data,num_to_hash+1,trans);
+				if((child = get_data_from_hash(ht_node->children,*((uint32_t *)iter->data))))
+				{
+					subset_recursive(ht,(struct hash_tree_node *)child->data,num_to_hash+1,trans);
+				}
+				iter = iter->next;
 			}
-			iter = iter->next;
+		}
+		else
+		{
+			struct node *copy = NULL;
+			struct node *iter = ht_node->item_lists;
+			while(iter != NULL)
+			{
+				if(is_subset(trans,(struct node *)iter->data))
+				{	
+					copy = copy_list(iter->data);
+					add(&ht->cand_list_final,copy,iter->count);
+				}
+				
+				iter = iter->next;
+			}
 		}
 	}
 	else
@@ -267,12 +290,9 @@ void subset_recursive(struct hash_tree *ht, struct hash_tree_node *ht_node,
 			while(iter != NULL)
 			{
 				if(is_subset(trans,(struct node *)iter->data))
-				{
-					print_nodes((struct node *)iter->data);
-					printf("\nis a subset of:\n");
-					print_nodes(trans);
-					printf("\n");	
+				{	
 					copy = copy_list(iter->data);
+//					print_nodes(copy);
 					add(&ht->cand_list_final,copy,iter->count);
 				}
 				
@@ -282,7 +302,7 @@ void subset_recursive(struct hash_tree *ht, struct hash_tree_node *ht_node,
 		else
 		{
 			unsigned char index = 0;
-			iter = get_node(ht_node->item_lists,num_to_hash);
+			iter = get_node(trans,num_to_hash);
 			while(iter != NULL)
 			{
 				if((child = get_data_from_hash(ht_node->children,*((uint32_t *)iter->data))))
@@ -302,11 +322,15 @@ void check_minsup(struct hash_tree *ht, struct hash_tree_node *ht_node,double mi
 	{
 		if(ht_node->node_type == interior)
 		{
+			
 			int iter;
 			for(iter = 0; iter < ht_node->children->size; iter++)
 			{
-				check_minsup(ht,(struct hash_tree_node *)ht_node->children
-						->hash_table[iter]->data,minsup);
+				if(ht_node->children->hash_table[iter] != NULL)
+				{
+					check_minsup(ht,(struct hash_tree_node *)ht_node->children
+							->hash_table[iter]->data,minsup);
+				}
 			}
 		}
 		else

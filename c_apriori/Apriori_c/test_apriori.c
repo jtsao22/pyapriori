@@ -23,8 +23,11 @@ extern void _test_free(void* const ptr, const char* file, const int line);
 void print_nodes(struct node *n)
 {
 	//print the node data in the linked list
+	uint32_t k;
+	
 	while(n != NULL)
 	{
+		k = *((uint32_t *)n->data);
 		printf("%i ",*((uint32_t *)n->data));
 		n = n->next;
 	}
@@ -45,8 +48,21 @@ void print_nodes(struct node *n)
 void test_apriori(void **state)
 {
 	struct node *freq_list = apriori(.03,3,"test3.dat", "output.dat",FALSE,3);	
+	struct node *iter = freq_list;
+	struct node *next;
 	
-	free_list_of_lists(&freq_list);
+	printf("all_Lk: \n");
+	while(iter != NULL)
+	{
+		next = iter->next;
+		print_lists((struct node *)iter->data);
+		
+		free_list_of_lists((struct node **)&iter->data);
+		free(iter);
+		
+		iter = next;
+	}
+	
 }
 
 void test_one_item_sets(void **state)
@@ -96,7 +112,7 @@ void test_one_item_sets(void **state)
 	assert_true(iter==NULL);
 
 	free_list_of_lists(&final_list);
-	
+	free_list_of_lists(&trans_list);
 	
 }
 
@@ -106,11 +122,18 @@ void test_parser(void **state)
 {
 	struct node *list = parser("test.dat",3,FALSE);
 	assert_true(list != NULL);
+	print_lists(list);
 	free_list_of_lists(&list);
 	/* test empty file */ 
-//	struct node *list1 = parser("test2.dat",3,FALSE);
-//	assert_true(list1 == NULL);
-//	free_list_of_lists(&list1);
+	struct node *list1 = parser("test2.dat",3,FALSE);
+	assert_true(list1 == NULL);
+	free_list_of_lists(&list1);
+	
+	/* test test3.dat */
+	struct node *list3 = parser("test3.dat",3,FALSE);
+	print_lists(list3);
+	free_list_of_lists(&list3);
+	
 }
 
 void test_get_token_list(void **state)
@@ -432,7 +455,7 @@ void test_insert_in_hash(void **state)
 			->next->data);
 	assert_int_equal(*((int *)((struct node *)(h_ptr->item_lists->data))->data),5);
 
-	free_hash_tree_node(ht_node);
+	free_hash_tree_node(&ht_node);
 
 }
 
@@ -487,7 +510,7 @@ void test_get_data_from_hash(void **state)
 	assert_int_equal(*((int *)((struct node *)((struct hash_tree_node *)
 			get_data_from_hash(ht_node->children,2)->next->data)->item_lists
 			->data)->data),5);
-	free_hash_tree_node(ht_node);
+	free_hash_tree_node(&ht_node);
 
 	
 }
@@ -503,7 +526,7 @@ void test_expand_node(void **state)
 void test_add_trans(void **state)
 {
 	struct hash_tree *ht = NULL;
-	init_hash_tree(&ht,1);
+	init_hash_tree(&ht,2);
 	
 	struct node *int_node = NULL;
 	struct node *int_node_2 = NULL;	
@@ -528,9 +551,33 @@ void test_add_trans(void **state)
 	
 	add_trans(&ht,(void *)int_node_2);	
 	
+	int_node_2 = NULL;
+	temp = malloc(sizeof(uint32_t));
+	*temp = 3;
+	add(&int_node_2,(void *)temp,1);
+	temp = malloc(sizeof(uint32_t));
+	*temp = 4;
+	add(&int_node_2,(void *)temp,1);
+	temp = malloc(sizeof(uint32_t));
+	*temp = 1;
+	add(&int_node_2,(void *)temp,1);
 	
-	print_all_tree(ht->root);
+	add_trans(&ht,(void *)int_node_2);
 	
+	int_node_2 = NULL;
+	temp = malloc(sizeof(uint32_t));
+	*temp = 3;
+	add(&int_node_2,(void *)temp,1);
+	temp = malloc(sizeof(uint32_t));
+	*temp = 6;
+	add(&int_node_2,(void *)temp,1);
+	temp = malloc(sizeof(uint32_t));
+	*temp = 1;
+	add(&int_node_2,(void *)temp,1);
+	
+	add_trans(&ht,(void *)int_node_2);	
+	
+	print_all_tree(ht->root);	
 	
 	free_hash_tree(ht);
 	
@@ -712,7 +759,7 @@ void test_check_minsup(void **state)
 	
 	print_lists(ht->l_k_set);
 	
-	free_hash_tree_node(ht_node);
+	free_hash_tree_node(&ht_node);
 	free_hash_tree(ht);
 }
 
@@ -763,11 +810,25 @@ void test_generate(void **state)
 	add(&test,(void *)temp,1);
 	add(&test_2,(void *)test,1);
 	
+	test = NULL;
+	temp = malloc(sizeof(uint32_t));
+	*temp = 2;
+	add(&test,(void *) temp,1);
+	temp = malloc(sizeof(uint32_t));
+	*temp = 3;
+	add(&test,(void *)temp,1);
+	temp = malloc(sizeof(uint32_t));
+	*temp = 4;
+	add(&test,(void *)temp,1);
+	add(&test_2,(void *)test,1);
+	
 	print_lists(test_2);
 	
 	cand_list_final = generate(&test_2,1,ht);
 	
-	/* test what should be an empty list */ 
+	print_all_tree(ht->root);
+	
+	/* test what should become an empty list */ 
 	printf("Cand_list_final: \n");
 	print_lists(cand_list_final);
 	
@@ -807,6 +868,8 @@ void test_generate(void **state)
 	print_lists(test_2);
 	
 	cand_list_final = generate(&test_2,1,ht_2);
+	
+	print_all_tree(ht_2->root);
 	
 	printf("cand_trans_list: \n");
 	print_lists(cand_list_final);
@@ -1189,6 +1252,8 @@ int main(int argc, char* argv[])
 {
 	UnitTest tests[] = 
 	{
+		unit_test(test_apriori),
+		unit_test(test_add_trans),
 		unit_test(test_generate),
 		unit_test(test_free_list),
 		unit_test(test_free_list_of_lists),
@@ -1203,12 +1268,10 @@ int main(int argc, char* argv[])
 		unit_test(test_get_dynamic_windows),
 		unit_test(test_insert_in_hash),
 		unit_test(test_one_item_sets),
-		unit_test(test_apriori),
 		unit_test(test_check_inside),
 		unit_test(test_hash),
 		unit_test(test_get_data_from_hash),
 		unit_test(test_expand_node),
-		unit_test(test_add_trans),
 		unit_test(test_subset),
 		unit_test(test_is_subset),
 		unit_test(test_check_minsup),

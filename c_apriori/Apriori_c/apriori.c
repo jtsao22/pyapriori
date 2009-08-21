@@ -18,29 +18,83 @@ struct node* apriori(double minsup, int w_size,
 {
 	struct node *transaction_list = parser(i_file, w_size,d_window);
 
-	struct node *L_1 = one_item_sets(transaction_list,&minsup);
-
-	struct node *L_kminusone_set = L_1;
+	struct node *L_kminusone_set = one_item_sets(transaction_list,&minsup);
 
 	printf("Minsup: %g\n",minsup);
-
-	int k = 2;
+	
 	struct node *cand_trans_list = NULL;
-	struct node *cand_list_final = NULL;
+	struct node *all_Lk = NULL;
+	struct node *candidates;
+	struct node *trans;
+	
 
 	struct hash_tree *ht = NULL;
 	init_hash_tree(&ht,node_threshold);
 
-//	while(L_kminusone_set != NULL)
+	add(&all_Lk,copy_list_of_lists(L_kminusone_set),1);
+
+	while(L_kminusone_set != NULL)
 	{
 		reinit_hash_tree(ht);
+		cand_trans_list = generate(&L_kminusone_set,minsup,ht);
+		
+		printf("Cand_trans_list: \n");
+		print_lists(cand_trans_list);
+	
+		
+		trans = transaction_list;
+		
+		while(trans != NULL)
+		{
+			free_list_of_lists(&ht->cand_list_final);
+			
+			subset(ht,(struct node **)&trans->data);
+			
+			printf("cand_list_final: \n");
+			print_lists(ht->cand_list_final);
+			
+			candidates = ht->cand_list_final;
+			while(candidates != NULL)
+			{
+				candidates->count += 1;
+				candidates = candidates->next;
+			}
+			
+			
+			trans = trans->next;
+		}
+		
+		ht->l_k_set = NULL;
+		
+		check_minsup(ht,ht->root,minsup);
+		
+		if(ht->l_k_set != NULL)
+		{
+			printf("l_k_sets: \n");
+			print_lists(ht->l_k_set);
+			printf("_____________\n");
+			add(&all_Lk,ht->l_k_set,1);
+		}	
+		
+		free_list_of_lists(&cand_trans_list);	
+		
+		free_list_of_lists(&L_kminusone_set);
+		L_kminusone_set = copy_list_of_lists(ht->l_k_set);
+		print_lists(ht->l_k_set);
+		print_lists(L_kminusone_set);
 		
 	}
 
+	
+	
 
+	free_list_of_lists(&L_kminusone_set);
+
+	free_list_of_lists(&transaction_list);
+	ht->l_k_set = NULL;
 	free_hash_tree(ht);
-	return L_1;
-
+	
+	return all_Lk;
 }
 
 void print_lists(struct node *n)
@@ -59,7 +113,7 @@ struct node *generate(struct node **f_item_list,double minsup,
 {
 	*f_item_list = mergesort(*f_item_list,&compare_lists);
 	
-	/* Join Step of Generate function */
+	
 	
 	/* Join Step Variable Declarations */ 
 	struct node *trans_1 = *f_item_list;
@@ -71,14 +125,13 @@ struct node *generate(struct node **f_item_list,double minsup,
 	struct node *subsets;
 	struct node *temp_list;
 	struct node *item_list;
-	struct node *removed_list;
 	struct node *copy;
 	struct node *iter;
 	struct node *next;
 	unsigned char inside;
 	struct node *checked_sets = NULL;
 	
-	
+	/* Join Step of Generate function */
 	
 	while(trans_1 != NULL)
 	{
@@ -93,8 +146,8 @@ struct node *generate(struct node **f_item_list,double minsup,
 		trans_1 = trans_1->next;
 	}
 	
-	printf("Cand_trans_list before prune: \n");
-	print_lists(cand_trans_list);
+//	printf("Cand_trans_list before prune: \n");
+//	print_lists(cand_trans_list);
 	
 	/* Prune Step of Generate function */ 
 	item_list = cand_trans_list;
@@ -151,6 +204,7 @@ struct node *generate(struct node **f_item_list,double minsup,
 	{
 		add_trans(&ht,copy_list((struct node *)item_list->data));
 		item_list = item_list->next;
+		
 	}
 
 	free_list_of_lists(&checked_sets);	
@@ -261,8 +315,6 @@ struct node* one_item_sets(struct node* T, double *minsup)
 	/* calculate the finite minsup number out of the percentage and total */
 	*minsup = (*minsup) * total_num_trans;
 
-	free_list_of_lists(&T);
-
 	all_trans_list = mergesort(all_trans_list,&compare_ints);
 
 	/* set iterator for all_trans_list and initialize variables */
@@ -332,13 +384,6 @@ struct node* one_item_sets(struct node* T, double *minsup)
 
 	return item_list;
 }
-
-
-
-
-
-
-
 
 struct node* parser(char* file_name,int w_size, int d_wind)
 {
