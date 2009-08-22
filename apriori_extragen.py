@@ -74,6 +74,7 @@ def parser(w_size,file_name,d_wind):   # Used to get information from file
     else:
         for index,start_t in enumerate(token_list):
             parse_list.add(hash(start_t))
+            hash_dict[hash(start_t)] = start_t
             for ind, token in enumerate(token_list[index+1:]):
                 if token == start_t:
                     list_of_parses.append(sorted(list(parse_list)))
@@ -316,7 +317,6 @@ def apriori(minsup, w_size,file, outputfile,d_window,node_threshold):
 
     transaction_list,hash_dict =  parser(w_size,file,d_window)
 
-
     # Get L_1, the large 1-itemsets that appear more than minsup
     L_1,minsup = one_item_sets(transaction_list,minsup)
     L_kminusone_set = L_1
@@ -343,11 +343,23 @@ def apriori(minsup, w_size,file, outputfile,d_window,node_threshold):
         ht.reinitialize()
         cand_trans_list = generate(L_kminusone_set,minsup,ht)
 
+        for i in cand_trans_list:
+                for m in i:
+                    print hash_dict[hash(m)],
+                print "\n"
+
 
         for trans in transaction_list:
             # call Subset to form the final candidate transaction list
             ht.cand_list_final = []
+
             ht.subset(trans)
+
+            for i in ht.cand_list_final:
+                for m in i.item_list:
+                    print hash_dict[hash(m)],
+                print "\n"
+
 
             for candidates in ht.cand_list_final:
                 # increment the count for candidates in the final list

@@ -1,4 +1,4 @@
-import apriori,sys
+import apriori_extragen,sys
 
 class Node:
     def __init__(self,parent, state,depth):              # initialize
@@ -169,9 +169,6 @@ class Hash_tree:
                     debug1("item_set: " + str(item_set))
 
                     if item_set.issubset(t.item_set):
-                        if item_set == set(['1','3','5']):
-                            debug("transaction when set is 135: " +\
-                                    str(t))
                         debug1(str(node.trans_list[index])+ " appended")
                         self.cand_list_final.append(node.trans_list[index])
 
@@ -184,9 +181,6 @@ class Hash_tree:
                     debug1("item_set: " + str(item_set))
 
                     if item_set.issubset(t.item_set):
-                        if item_set == set(['1','3','5']):
-                            debug("transaction when set is 135: " +\
-                                    str(t))
                         debug1(str(node.trans_list[index])+ " appended")
                         self.cand_list_final.append(node.trans_list[index])
             else:
