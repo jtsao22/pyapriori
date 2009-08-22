@@ -47,7 +47,7 @@ void print_nodes(struct node *n)
 
 void test_apriori(void **state)
 {
-	struct node *freq_list = apriori(.03,3,"test3.dat", "output.dat",FALSE,3);	
+	struct node *freq_list = apriori(.13,3,"test3.dat", "output.dat",FALSE,3);	
 	struct node *iter = freq_list;
 	struct node *next;
 	
@@ -536,7 +536,9 @@ void test_add_trans(void **state)
 	temp = malloc(sizeof(uint32_t));
 	*temp = 5;
 	add(&int_node,(void *)temp,1);
-
+	temp = malloc(sizeof(uint32_t));
+	*temp = 6;
+	add(&int_node,(void *)temp,1);
 	add_trans(&ht,(void *)int_node);
 	
 	temp = malloc(sizeof(uint32_t));
@@ -548,7 +550,6 @@ void test_add_trans(void **state)
 	temp = malloc(sizeof(uint32_t));
 	*temp = 1;
 	add(&int_node_2,(void *)temp,1);
-	
 	add_trans(&ht,(void *)int_node_2);	
 	
 	int_node_2 = NULL;
@@ -561,7 +562,6 @@ void test_add_trans(void **state)
 	temp = malloc(sizeof(uint32_t));
 	*temp = 1;
 	add(&int_node_2,(void *)temp,1);
-	
 	add_trans(&ht,(void *)int_node_2);
 	
 	int_node_2 = NULL;
@@ -574,8 +574,19 @@ void test_add_trans(void **state)
 	temp = malloc(sizeof(uint32_t));
 	*temp = 1;
 	add(&int_node_2,(void *)temp,1);
-	
 	add_trans(&ht,(void *)int_node_2);	
+	
+	int_node_2 = NULL;
+	temp = malloc(sizeof(uint32_t));
+	*temp = 5;
+	add(&int_node_2,(void *)temp,1);
+	temp = malloc(sizeof(uint32_t));
+	*temp = 4;
+	add(&int_node_2,(void *)temp,1);
+	temp = malloc(sizeof(uint32_t));
+	*temp = 1;
+	add(&int_node_2,(void *)temp,1);
+	add_trans(&ht,(void *)int_node_2);
 	
 	print_all_tree(ht->root);	
 	
@@ -840,30 +851,30 @@ void test_generate(void **state)
 	test = NULL;
 	temp = malloc(sizeof(uint32_t));
 	*temp = 1;
-	add(&test,(void *) temp,1);
+	add(&test,(void *) temp,0);
 	temp = malloc(sizeof(uint32_t));
 	*temp = 2;
-	add(&test,(void *)temp,1);
-	add(&test_2,(void *)test,1);
+	add(&test,(void *)temp,0);
+	add(&test_2,(void *)test,0);
 	
 	
 	test = NULL;
 	temp = malloc(sizeof(uint32_t));
 	*temp = 1;
-	add(&test,(void *) temp,1);
+	add(&test,(void *) temp,0);
 	temp = malloc(sizeof(uint32_t));
 	*temp = 3;
-	add(&test,(void *)temp,1);
-	add(&test_2,(void *)test,1);
+	add(&test,(void *)temp,0);
+	add(&test_2,(void *)test,0);
 	
 	test = NULL;
 	temp = malloc(sizeof(uint32_t));
 	*temp = 2;
-	add(&test,(void *) temp,1);
+	add(&test,(void *) temp,0);
 	temp = malloc(sizeof(uint32_t));
 	*temp = 3;
-	add(&test,(void *)temp,1);
-	add(&test_2,(void *)test,1);
+	add(&test,(void *)temp,0);
+	add(&test_2,(void *)test,0);
 	
 	print_lists(test_2);
 	

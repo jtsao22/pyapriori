@@ -117,7 +117,7 @@ void free_hash_map(struct hash_map **hm)
 void insert_in_hash(struct hash_map *hm, uint32_t num,struct hash_tree_node *ht_node)
 {
 	uint32_t converted = hash(num)%100;
-	if(!add(&hm->hash_table[converted],(void *) ht_node,1))
+	if(!add(&hm->hash_table[converted],(void *) ht_node,0))
 	{
 		exit(0);
 	}

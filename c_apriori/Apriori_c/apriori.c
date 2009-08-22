@@ -33,12 +33,16 @@ struct node* apriori(double minsup, int w_size,
 
 	add(&all_Lk,copy_list_of_lists(L_kminusone_set),1);
 
-	while(L_kminusone_set != NULL)
+//	while(L_kminusone_set != NULL)
+	int k;
+	for(k = 0; k < 2; k++)
 	{
 		reinit_hash_tree(ht);
 		cand_trans_list = generate(&L_kminusone_set,minsup,ht);
 		
-		printf("Cand_trans_list: \n");
+		printf("TREE: ");
+		print_all_tree(ht->root);
+		printf("\nCand_trans_list: \n");
 		print_lists(cand_trans_list);
 	
 		
@@ -47,18 +51,14 @@ struct node* apriori(double minsup, int w_size,
 		while(trans != NULL)
 		{
 			free_list_of_lists(&ht->cand_list_final);
-			
 			subset(ht,(struct node **)&trans->data);
-			
-			printf("cand_list_final: \n");
-			print_lists(ht->cand_list_final);
-			
-			candidates = ht->cand_list_final;
-			while(candidates != NULL)
-			{
-				candidates->count += 1;
-				candidates = candidates->next;
-			}
+		
+//			candidates = ht->cand_list_final;
+//			while(candidates != NULL)
+//			{
+//				candidates->count += 1;
+//				candidates = candidates->next;
+//			}
 			
 			
 			trans = trans->next;
@@ -103,7 +103,8 @@ void print_lists(struct node *n)
 	{
 		printf("List: ");
 		print_nodes((struct node *)(n->data));
-		printf("\n");
+		
+		printf("occurs: %i\n",n->count);
 		n = n->next;	
 	}
 }
@@ -140,7 +141,7 @@ struct node *generate(struct node **f_item_list,double minsup,
 		{			
 			check = check_item_last(trans_1->data,trans_2->data);
 			if(check != NULL)
-				add(&cand_trans_list,(void *)check,1);	
+				add(&cand_trans_list,(void *)check,0);	
 			trans_2 = trans_2->next;
 		}
 		trans_1 = trans_1->next;
@@ -168,7 +169,7 @@ struct node *generate(struct node **f_item_list,double minsup,
 			if(!is_inside(checked_sets,(struct node *)iter->data))
 			{
 				copy = copy_list((struct node *)iter->data);
-				add(&checked_sets,copy,1);
+				add(&checked_sets,copy,0);
 				inside = FALSE;
 				
 				trans_1 = *f_item_list;
@@ -199,12 +200,14 @@ struct node *generate(struct node **f_item_list,double minsup,
 	}
 	
 	item_list = cand_trans_list;
-
 	while(item_list != NULL)
 	{
+		
+		printf("\n");
 		add_trans(&ht,copy_list((struct node *)item_list->data));
 		item_list = item_list->next;
-		
+//		printf("Tree: \n");
+//		print_all_tree(ht->root);
 	}
 
 	free_list_of_lists(&checked_sets);	
@@ -229,7 +232,7 @@ struct node *get_subsets_of(struct node *item_list)
 			
 			*temp = *((int *)iter_2->data);
 			t = *temp;
-			add(&temp_list,(void *)temp,1);
+			add(&temp_list,(void *)temp,0);
 			iter_2 = iter_2->next;
 		}
 		
@@ -239,11 +242,11 @@ struct node *get_subsets_of(struct node *item_list)
 			temp = malloc(sizeof(uint32_t));
 			*temp = *((uint32_t *)iter_2->data);
 			t = *temp;
-			add(&temp_list,(void *)temp,1);
+			add(&temp_list,(void *)temp,0);
 			iter_2 = iter_2->next;
 			
 		}
-		add(&return_list,(void *)temp_list,1);
+		add(&return_list,(void *)temp_list,0);
 		temp_list = NULL;
 		
 		iter = iter->next;
@@ -278,7 +281,7 @@ struct node *check_item_last(struct node *trans_1, struct node *trans_2)
 		*temp = *((uint32_t *)iter_2->data);
 		iter_1 = NULL;
 		iter_1 = copy_list(trans_1);
-		add(&iter_1,(void *)temp,1);
+		add(&iter_1,(void *)temp,0);
 		return iter_1;
 	}
 	else
@@ -335,7 +338,7 @@ struct node* one_item_sets(struct node* T, double *minsup)
 				*temp = item;
 				if(*temp != 0)
 				{
-					if(!add(&temp_list,(void *)temp,1))
+					if(!add(&temp_list,(void *)temp,0))
 		 			{
 		 				printf("Error with Memory Allocation");
 		 				exit(0);
@@ -367,7 +370,7 @@ struct node* one_item_sets(struct node* T, double *minsup)
 		*temp = item;
 		if(*temp != 0)
 		{
-			if(!add(&temp_list,(void *)temp,1))
+			if(!add(&temp_list,(void *)temp,0))
  			{
  				printf("Error with Memory Allocation");
  				exit(0);
@@ -474,7 +477,7 @@ struct node* get_windows(struct node* token_list, int w_size)
 			{
 				temp = (uint32_t *)malloc(sizeof(uint32_t));
 				*temp = value;
-	 			if(!add(&parse_list,(void *)temp,1))
+	 			if(!add(&parse_list,(void *)temp,0))
 	 			{
 	 				printf("Error while reading from file");
 	 				exit(0);
@@ -487,7 +490,7 @@ struct node* get_windows(struct node* token_list, int w_size)
  			else
  			{
  				parse_list = mergesort(parse_list,&compare_ints);
- 				add(&list_of_parses,(void *)parse_list,1);
+ 				add(&list_of_parses,(void *)parse_list,0);
  				parse_list = NULL;
  				iter = 0;
  			}
@@ -525,7 +528,7 @@ struct node* get_dynamic_windows(struct node* token_list)
 	{
 		temp = (uint32_t *)malloc(sizeof(uint32_t));
 		*temp = *((uint32_t *)start_t->data);
-		if(!add(&parse_list,(void *)temp,1))
+		if(!add(&parse_list,(void *)temp,0))
 		{
 			printf("Error while reading from file");
 			exit(0);
@@ -536,7 +539,7 @@ struct node* get_dynamic_windows(struct node* token_list)
 			if(*((uint32_t *)token->data) == *((uint32_t *)start_t->data))
 			{
 				parse_list = mergesort(parse_list,&compare_ints);
-				if(!add(&list_of_parses,(void *)parse_list,1))
+				if(!add(&list_of_parses,(void *)parse_list,0))
 				{
 					printf("Error with Memory Allocation");
 		 			exit(0);
@@ -548,7 +551,7 @@ struct node* get_dynamic_windows(struct node* token_list)
 			{
 				temp = (uint32_t *)malloc(sizeof(uint32_t));
 				*temp = *((uint32_t *)token->data);
-				if(!add(&parse_list,(void *)temp,1))
+				if(!add(&parse_list,(void *)temp,0))
 				{
 					printf("Error while reading from file");
 					exit(0);
@@ -561,7 +564,7 @@ struct node* get_dynamic_windows(struct node* token_list)
 			if(parse_list != NULL)
 			{
 				parse_list = mergesort(parse_list,&compare_ints);
-				if(!add(&list_of_parses,(void *)parse_list,1))
+				if(!add(&list_of_parses,(void *)parse_list,0))
 				{
 					printf("Error with Memory Allocation");
 		 			exit(0);
@@ -590,7 +593,7 @@ struct node* get_token_list(FILE* fp)
 		{
 			temp = malloc(sizeof(uint32_t));
 			*temp = atoi(s);
-			if(!add(&head,(void *) temp,1))
+			if(!add(&head,(void *) temp,0))
 			{
 				printf("Error while reading from file");
 				exit(1);
