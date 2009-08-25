@@ -172,11 +172,9 @@ void add_trans_recursive(struct hash_tree *ht,struct hash_tree_node *ht_node,
 	if(ht_node->node_type == interior)
 	{
 		uint32_t num = *((uint32_t *)get_data(trans,depth));
-		printf("NUM: %i\n",num);
 		struct node *ll = get_data_from_hash(ht_node->children,num);
 		if(ll != NULL)
 		{
-			printf("NUM FOUND\n");
 			add_trans_recursive(ht, (struct hash_tree_node *)ll->data,trans,depth + 1);
 		}
 		else
@@ -186,8 +184,6 @@ void add_trans_recursive(struct hash_tree *ht,struct hash_tree_node *ht_node,
 			add_transaction(temp,trans);
 			
 			add_child(ht_node,num,temp);
-			printf("Child made\n");
-			print_nodes(trans);
 			
 		}
 	}
@@ -195,8 +191,6 @@ void add_trans_recursive(struct hash_tree *ht,struct hash_tree_node *ht_node,
 	else
 	{	
 		add_transaction(ht_node,trans);
-		printf("Trans made\n");
-		print_nodes(trans);
 		expand_node(ht_node,ht->threshold);
 	}
 }
@@ -274,16 +268,12 @@ void subset_recursive(struct hash_tree *ht, struct hash_tree_node *ht_node,
 		}
 		else
 		{
-			struct node *copy = NULL;
 			struct node *iter = ht_node->item_lists;
 			while(iter != NULL)
 			{
 				if(is_subset(trans,(struct node *)iter->data))
 				{	
-					copy = copy_list(iter->data);
 					iter->count += 1;
-					printf("iter->count + 1: %i\n",iter->count+1);
-					add(&ht->cand_list_final,copy,iter->count+1);
 				}
 				
 				iter = iter->next;
@@ -292,20 +282,14 @@ void subset_recursive(struct hash_tree *ht, struct hash_tree_node *ht_node,
 	}
 	else
 	{
-		struct node *copy = NULL;
 		if(ht_node->node_type == leaf)
 		{
 			struct node *iter = ht_node->item_lists;
-			printf("duplicates?: \n");
-			print_lists(ht_node->item_lists);
 			while(iter != NULL)
 			{
 				if(is_subset(trans,(struct node *)iter->data))
 				{	
-					copy = copy_list(iter->data);
 					iter->count += 1;
-					printf("iter->count + 1: %i\n",iter->count+1);
-					add(&ht->cand_list_final,copy,iter->count+1);
 				}
 				
 				iter = iter->next;
@@ -353,7 +337,6 @@ void check_minsup(struct hash_tree *ht, struct hash_tree_node *ht_node,double mi
 			struct node *copy = NULL;
 			while(iter != NULL)
 			{
-				printf("iter->count: %i\n",iter->count);
 				if(iter->count  >= minsup)
 				{
 					copy = copy_list(iter->data);

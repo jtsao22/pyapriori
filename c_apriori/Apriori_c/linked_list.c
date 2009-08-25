@@ -360,29 +360,25 @@ int is_subset(struct node *l_1, struct node *l_2)
 		return FALSE;
 	
 	unsigned char inside;
-	struct node *iter_1 = l_1;
+	struct node *iter_1;
 	struct node *iter_2 = l_2;
-	struct node *iter_3 = NULL;
-	while(iter_1 != NULL)
+
+	while(iter_2 != NULL)
 	{
-		iter_2 = l_2;
-		if(*((int *)iter_1->data) == *((int *)iter_2->data))
+		iter_1 = l_1;
+		inside = FALSE;
+		while(iter_1 != NULL)
 		{
-			iter_3 = iter_1;
-			inside = TRUE;
-			while(iter_2 != NULL && iter_3 != NULL)
-			{
-				if(*((int *)iter_2->data) != *((int *)iter_3->data))
-					inside = FALSE;
-				iter_3 = iter_3->next;
-				iter_2 = iter_2->next;
-			}
-			if(inside == TRUE && iter_2 == NULL)
-				return TRUE;
+			if(*((int *)iter_1->data) == *((int *)iter_2->data))
+				inside = TRUE;
+			iter_1 = iter_1->next;
 		}
-		iter_1 = iter_1->next;
+		if(inside == FALSE)
+			return FALSE;
+		iter_2 = iter_2->next;
 	}
-	return FALSE;
+
+	return TRUE;
 }
 
 

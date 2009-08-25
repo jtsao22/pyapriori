@@ -24,14 +24,14 @@ struct node* apriori(double minsup, int w_size,
 	
 	struct node *cand_trans_list = NULL;
 	struct node *all_Lk = NULL;
-	struct node *candidates;
+//	struct node *candidates;
 	struct node *trans;
 	
 
 	struct hash_tree *ht = NULL;
 	init_hash_tree(&ht,node_threshold);
 
-	add(&all_Lk,copy_list_of_lists(L_kminusone_set),1);
+	add(&all_Lk,copy_list_of_lists(L_kminusone_set),0);
 
 //	while(L_kminusone_set != NULL)
 	int k;
@@ -39,28 +39,13 @@ struct node* apriori(double minsup, int w_size,
 	{
 		reinit_hash_tree(ht);
 		cand_trans_list = generate(&L_kminusone_set,minsup,ht);
-		
-		printf("TREE: ");
-		print_all_tree(ht->root);
-		printf("\nCand_trans_list: \n");
-		print_lists(cand_trans_list);
-	
-		
+				
 		trans = transaction_list;
 		
 		while(trans != NULL)
 		{
 			free_list_of_lists(&ht->cand_list_final);
-			subset(ht,(struct node **)&trans->data);
-		
-//			candidates = ht->cand_list_final;
-//			while(candidates != NULL)
-//			{
-//				candidates->count += 1;
-//				candidates = candidates->next;
-//			}
-			
-			
+			subset(ht,(struct node **)&trans->data);		
 			trans = trans->next;
 		}
 		
@@ -73,15 +58,13 @@ struct node* apriori(double minsup, int w_size,
 			printf("l_k_sets: \n");
 			print_lists(ht->l_k_set);
 			printf("_____________\n");
-			add(&all_Lk,ht->l_k_set,1);
+			add(&all_Lk,ht->l_k_set,0);
 		}	
 		
 		free_list_of_lists(&cand_trans_list);	
 		
 		free_list_of_lists(&L_kminusone_set);
 		L_kminusone_set = copy_list_of_lists(ht->l_k_set);
-		print_lists(ht->l_k_set);
-		print_lists(L_kminusone_set);
 		
 	}
 
@@ -147,9 +130,6 @@ struct node *generate(struct node **f_item_list,double minsup,
 		trans_1 = trans_1->next;
 	}
 	
-//	printf("Cand_trans_list before prune: \n");
-//	print_lists(cand_trans_list);
-	
 	/* Prune Step of Generate function */ 
 	item_list = cand_trans_list;
 	
@@ -161,13 +141,13 @@ struct node *generate(struct node **f_item_list,double minsup,
 		temp_list = NULL;
 		subsets = NULL;
 		subsets = get_subsets_of((struct node *)item_list->data);
-		
+				
 		iter = subsets;
 	
 		while(iter != NULL)
 		{
-			if(!is_inside(checked_sets,(struct node *)iter->data))
-			{
+//			if(!is_inside(checked_sets,(struct node *)iter->data))
+//			{
 				copy = copy_list((struct node *)iter->data);
 				add(&checked_sets,copy,0);
 				inside = FALSE;
@@ -189,7 +169,7 @@ struct node *generate(struct node **f_item_list,double minsup,
 					remove_list(&cand_trans_list,(struct node *)item_list->data);
 					break;
 				}
-			}	
+//			}	
 			iter = iter->next;
 			
 		}
@@ -202,12 +182,8 @@ struct node *generate(struct node **f_item_list,double minsup,
 	item_list = cand_trans_list;
 	while(item_list != NULL)
 	{
-		
-		printf("\n");
 		add_trans(&ht,copy_list((struct node *)item_list->data));
 		item_list = item_list->next;
-//		printf("Tree: \n");
-//		print_all_tree(ht->root);
 	}
 
 	free_list_of_lists(&checked_sets);	
