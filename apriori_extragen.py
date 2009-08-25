@@ -62,7 +62,7 @@ def parser(w_size,file_name,d_wind):   # Used to get information from file
     if d_wind == False:
         for start_t in token_list[:-w_size + 1]:
             for token in token_list[i:i+w_size]:
-                parse_list.add(hash(token))
+                parse_list.add(token) #hash(token))
                 hash_dict[hash(token)] = token
                 if iter < w_size -1:
                     iter += 1
@@ -207,9 +207,10 @@ def generate(f_item_list,minsup,ht): # used to find the candidate
                                        # transaction set Ck
 
     f_item_list.sort()
-    assert(check_item_last(Transaction(set([1,3,4])),Transaction(set([1,2,3])))==[])
-    assert(check_item_last(Transaction(set([1,2,3])),Transaction(set([1,2,4])))==
-            [1,2,3,4])
+    assert(check_item_last(Transaction(set([1,3,4])),Transaction(set([1,2,3]
+            )))==[])
+    assert(check_item_last(Transaction(set([1,2,3])),Transaction(set([1,2,4]
+            )))==[1,2,3,4])
 
     # Join Step of Generate function
 
@@ -229,39 +230,36 @@ def generate(f_item_list,minsup,ht): # used to find the candidate
     # Prune Step of Generate function
     subsets = []
 
-    # Removed list keeps track of the item lists that were already
-    # removed
-    removed_list = []
     checked_sets = []
 
+    ct_list = []
+    ct_list[:] = cand_trans_list
+
     for item_list in cand_trans_list:
+
         temp_list = []
         subsets = []
         get_subsets_of(item_list,temp_list,subsets)
 
         for iter in subsets:
-            if iter not in checked_sets:
-                checked_sets.append(iter)
-                inside = 0
+            inside = 0
 
-                for item in f_item_list:
-                    if set(iter) == item.item_set:
-                        inside = 1
-                        break
+            for item in f_item_list:
+                if sorted(iter) == item.item_list:
+                    inside = 1
+                    break
 
 
-                if inside == 0:
-                    if item_list not in removed_list:
-                        cand_trans_list.remove(item_list)
-                        removed_list.append(item_list)
-                        break
+            if inside == 0:
+                ct_list.remove(item_list)
+                break
 
-    for item_list in cand_trans_list:
+    for item_list in ct_list:
         trans = Transaction(set(item_list))
         ht.add_trans(trans)
 
 
-    return cand_trans_list
+    return ct_list
 
 ############################################################################
 #                              Get subsets of Function                     #
@@ -274,7 +272,6 @@ def get_subsets_of(item_list,temp_list,return_list):
         temp_list.extend(item_list[i+1:])
         return_list.append(temp_list)
         temp_list = []
-
 
 ############################################################################
 #                               Check item last                            #
@@ -342,25 +339,11 @@ def apriori(minsup, w_size,file, outputfile,d_window,node_threshold):
 
         ht.reinitialize()
         cand_trans_list = generate(L_kminusone_set,minsup,ht)
-
-        for i in cand_trans_list:
-                for m in i:
-                    print hash_dict[hash(m)],
-                print "\n"
-
-
         for trans in transaction_list:
             # call Subset to form the final candidate transaction list
             ht.cand_list_final = []
 
             ht.subset(trans)
-
-            for i in ht.cand_list_final:
-                for m in i.item_list:
-                    print hash_dict[hash(m)],
-                print "\n"
-
-
             for candidates in ht.cand_list_final:
                 # increment the count for candidates in the final list
                 candidates.count += 1
@@ -390,7 +373,7 @@ def apriori(minsup, w_size,file, outputfile,d_window,node_threshold):
         for i in all_Lk_dict[k]:
             temp_list = []
             for item in sorted(i.item_set):
-                temp_list.append(hash_dict[item])
+                temp_list.append(item)#hash_dict[item])
             output_string = str(temp_list) + "\n occurs\
                     this many times: " + str(i.count)
             outputfile.write(output_string)
