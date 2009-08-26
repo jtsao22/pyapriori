@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include "linked_list.h"
 
 #ifdef CMOCKERY
@@ -205,7 +206,7 @@ void *get_data(struct node *n, int index)
 	// Thus, this line should not be outputted and is here
 	// in case there's an error. 	
 	printf("Error: The data was not found in linked list");
-	assert(FALSE);
+	//assert(FALSE);
 	return 0;
 }
 

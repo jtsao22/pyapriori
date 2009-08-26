@@ -3,6 +3,7 @@
 #include<stdlib.h>
 #include <string.h>
 #include "linked_list.h"
+#include "hash_tree.h"
 
 #ifndef TRUE
 #define TRUE 1

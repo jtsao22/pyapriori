@@ -24,7 +24,6 @@ struct node* apriori(double minsup, int w_size,
 	
 	struct node *cand_trans_list = NULL;
 	struct node *all_Lk = NULL;
-//	struct node *candidates;
 	struct node *trans;
 	
 
@@ -33,9 +32,7 @@ struct node* apriori(double minsup, int w_size,
 
 	add(&all_Lk,copy_list_of_lists(L_kminusone_set),0);
 
-//	while(L_kminusone_set != NULL)
-	int k;
-	for(k = 0; k < 2; k++)
+	while(L_kminusone_set != NULL)
 	{
 		reinit_hash_tree(ht);
 		cand_trans_list = generate(&L_kminusone_set,minsup,ht);
@@ -55,9 +52,9 @@ struct node* apriori(double minsup, int w_size,
 		
 		if(ht->l_k_set != NULL)
 		{
-			printf("l_k_sets: \n");
-			print_lists(ht->l_k_set);
-			printf("_____________\n");
+//			printf("l_k_sets: \n");
+//			print_lists(ht->l_k_set);
+//			printf("_____________\n");
 			add(&all_Lk,ht->l_k_set,0);
 		}	
 		
@@ -79,6 +76,18 @@ struct node* apriori(double minsup, int w_size,
 	
 	return all_Lk;
 }
+void print_nodes(struct node *n)
+{
+	//print the node data in the linked list
+	uint32_t k;
+	
+	while(n != NULL)
+	{
+		k = *((uint32_t *)n->data);
+		printf("%i ",*((uint32_t *)n->data));
+		n = n->next;
+	}
+}
 
 void print_lists(struct node *n)
 {
@@ -96,8 +105,6 @@ struct node *generate(struct node **f_item_list,double minsup,
 		struct hash_tree *ht)
 {
 	*f_item_list = mergesort(*f_item_list,&compare_lists);
-	
-	
 	
 	/* Join Step Variable Declarations */ 
 	struct node *trans_1 = *f_item_list;
@@ -132,7 +139,6 @@ struct node *generate(struct node **f_item_list,double minsup,
 	
 	/* Prune Step of Generate function */ 
 	item_list = cand_trans_list;
-	
 	
 	while(item_list != NULL)
 	{

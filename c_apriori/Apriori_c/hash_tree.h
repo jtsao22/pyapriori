@@ -2,6 +2,8 @@
 #define HASH_TREE_H
 
 #include<stdio.h>
+#include <stdint.h>
+#include "linked_list.h"
 
 enum state {leaf,interior};
 
