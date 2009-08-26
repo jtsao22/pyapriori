@@ -248,6 +248,7 @@ void subset(struct hash_tree *ht,struct node **trans)
 void subset_recursive(struct hash_tree *ht, struct hash_tree_node *ht_node,
 		uint32_t num_to_hash, struct node *trans)
 {	
+	
 	struct node *child = NULL;
 	struct node *iter = NULL;
 	/* if root, hash on every item in trans */ 
@@ -271,9 +272,12 @@ void subset_recursive(struct hash_tree *ht, struct hash_tree_node *ht_node,
 			struct node *iter = ht_node->item_lists;
 			while(iter != NULL)
 			{
+				
 				if(is_subset(trans,(struct node *)iter->data))
 				{	
+					
 					iter->count += 1;
+					
 				}
 				
 				iter = iter->next;
@@ -303,7 +307,7 @@ void subset_recursive(struct hash_tree *ht, struct hash_tree_node *ht_node,
 			iter = get_node(trans,num_to_hash);
 			while(iter != NULL)
 			{
-				if((child = get_data_from_hash(ht_node->children,*((uint32_t *)iter->data))))
+				if((child = get_data_from_hash(ht_node->children,*((uint32_t *)iter->data))) != NULL)
 				{
 					subset_recursive(ht,(struct hash_tree_node *)child->data,index+num_to_hash+1,trans);
 				}

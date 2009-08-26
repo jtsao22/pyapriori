@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
 	printf("Non-option argument: %s\n",argv[optind]);	
 	
 	struct node *freq_list = apriori(m_value,w_value,argv[optind], o_filename,d_flag,t_value);
-	
+//	struct node *freq_list = apriori(.09,4,"test5.dat", "output.dat",FALSE,3);	
 	iter = freq_list;
 	while(iter != NULL)
 	{
