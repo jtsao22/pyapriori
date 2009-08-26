@@ -31,7 +31,7 @@ struct hash_tree_node
 void init_hash_tree_node(struct hash_tree_node *ht_node, struct hash_tree_node *parent, 
 		enum state node_type, unsigned char depth);
 
-void add_child(struct hash_tree_node *ht_node, unsigned char depth,
+void add_child(struct hash_tree_node *ht_node, uint32_t depth,
 		struct hash_tree_node *child);
 
 int add_transaction(struct hash_tree_node *ht_node, void *data);

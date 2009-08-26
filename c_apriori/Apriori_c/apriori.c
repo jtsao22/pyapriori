@@ -38,11 +38,6 @@ struct node* apriori(double minsup, int w_size,
 		cand_trans_list = generate(&L_kminusone_set,minsup,ht);
 				
 		trans = transaction_list;
-		
-		
-		print_all_tree(ht->root);
-		
-		
 		while(trans != NULL)
 		{
 			free_list_of_lists(&ht->cand_list_final);
@@ -144,10 +139,6 @@ struct node *generate(struct node **f_item_list,double minsup,
 	/* Prune Step of Generate function */ 
 	item_list = cand_trans_list;
 	
-	printf("cand_trans_list: \n");
-	print_lists(cand_trans_list);
-	printf("\n\n");
-	
 	while(item_list != NULL)
 	{
 		
@@ -192,17 +183,13 @@ struct node *generate(struct node **f_item_list,double minsup,
 		item_list = next;
 		
 	}
-	
+		
 	item_list = cand_trans_list;
 	while(item_list != NULL)
 	{
 		add_trans(&ht,copy_list((struct node *)item_list->data));
 		item_list = item_list->next;
 	}
-
-	printf("cand_trans_list after: \n");
-	print_lists(cand_trans_list);
-	printf("\n\n");
 
 	free_list_of_lists(&checked_sets);	
 	return cand_trans_list;
@@ -323,13 +310,9 @@ struct node* one_item_sets(struct node* T, double *minsup)
 	uint32_t item = *((uint32_t *)(iter->data));
 	int count = 0;
 	while(iter != NULL)
-	{
-		printf("iter->data: %i\n",*((uint32_t *)iter->data));
-		printf("item: %i\n",item);
-		
+	{		
 		if(*((uint32_t *)(iter->data)) != item)
 		{
-			printf("count: %i",count);
 			if(count >= *minsup)
 			{
 				temp = malloc(sizeof(uint32_t));
@@ -383,10 +366,6 @@ struct node* one_item_sets(struct node* T, double *minsup)
 	}
 
 	free_list(&all_trans_list,&free_ints);
-
-	printf("item_list: \n");
-	print_lists(item_list);
-
 	return item_list;
 }
 

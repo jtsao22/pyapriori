@@ -27,7 +27,7 @@ void init_hash_tree_node(struct hash_tree_node *ht_node, struct hash_tree_node *
 	ht_node->depth = depth;
 }
 
-void add_child(struct hash_tree_node *ht_node, unsigned char depth,
+void add_child(struct hash_tree_node *ht_node, uint32_t depth,
 		struct hash_tree_node *child)
 {
 	insert_in_hash(ht_node->children,depth,child);
@@ -248,12 +248,12 @@ void subset(struct hash_tree *ht,struct node **trans)
 void subset_recursive(struct hash_tree *ht, struct hash_tree_node *ht_node,
 		uint32_t num_to_hash, struct node *trans)
 {	
-	
 	struct node *child = NULL;
 	struct node *iter = NULL;
 	/* if root, hash on every item in trans */ 
 	if(ht_node->parent == NULL)
 	{
+		
 		if(ht_node->node_type == interior)
 		{
 			iter = trans;
