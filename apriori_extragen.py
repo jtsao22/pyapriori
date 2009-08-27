@@ -60,17 +60,32 @@ def parser(w_size,file_name,d_wind):   # Used to get information from file
     hash_dict = {}
 
     if d_wind == False:
-        for start_t in token_list[:-w_size + 1]:
-            for token in token_list[i:i+w_size]:
-                parse_list.add(token) #hash(token))
-                hash_dict[hash(token)] = token
-                if iter < w_size -1:
-                    iter += 1
-                else:
-                    list_of_parses.append(sorted(list(parse_list)))
-                    parse_list = set([])
-                    iter = 0
-            i += 1
+        if w_size == 1:
+            for start_t in token_list:
+                for token in token_list[i:i+w_size]:
+                    parse_list.add(hash(token))
+                    hash_dict[hash(token)] = token
+                    if iter < w_size -1:
+                        iter += 1
+                    else:
+                        list_of_parses.append(sorted(list(parse_list)))
+                        parse_list = set([])
+                        iter = 0
+                i += 1
+
+        else:
+            for start_t in token_list[:-w_size+1]:
+                for token in token_list[i:i+w_size]:
+                    parse_list.add(hash(token))
+                    hash_dict[hash(token)] = token
+                    if iter < w_size -1:
+                        iter += 1
+                    else:
+                        list_of_parses.append(sorted(list(parse_list)))
+                        parse_list = set([])
+                        iter = 0
+                i += 1
+
     else:
         for index,start_t in enumerate(token_list):
             parse_list.add(hash(start_t))
@@ -101,8 +116,9 @@ def parser(w_size,file_name,d_wind):   # Used to get information from file
         trans = Transaction(parse_list)
         transaction_list.append(trans)
 
-    print "average_window_size: "
-    print total_window_size/len(transaction_list)
+    if len(transaction_list) > 0:
+        print "average_window_size: "
+        print total_window_size/len(transaction_list)
 
     print "max window size: "
     print max_window_size
@@ -159,7 +175,6 @@ def one_item_sets(T, minsup): # this function gets L_1 using the
     total_num_trans = 0
 
     for transaction in T:
-        #all_transactions_set.update(transaction.item_set)
         all_transactions_list += transaction.item_set
         total_num_trans += 1
 
@@ -236,7 +251,6 @@ def generate(f_item_list,minsup,ht): # used to find the candidate
     ct_list[:] = cand_trans_list
 
     for item_list in cand_trans_list:
-
         temp_list = []
         subsets = []
         get_subsets_of(item_list,temp_list,subsets)
@@ -373,7 +387,7 @@ def apriori(minsup, w_size,file, outputfile,d_window,node_threshold):
         for i in all_Lk_dict[k]:
             temp_list = []
             for item in sorted(i.item_set):
-                temp_list.append(item)#hash_dict[item])
+                temp_list.append(hash_dict[item])
             output_string = str(temp_list) + "\n occurs\
                     this many times: " + str(i.count)
             outputfile.write(output_string)
@@ -411,7 +425,7 @@ if __name__ == '__main__':
             help="This sets the minsup percentage")
     o_parser.add_option("-w", action="store",type="int",dest="w_size",help=\
             "This sets the window size",default=3)
-    o_parser.add_option("-t", action="store",dest="threshold",help=\
+    o_parser.add_option("-t", type="int",action="store",dest="threshold",help=\
             "This sets the node threshold",default=3)
 
     o_parser.add_option("-o",action="store",type="string",dest="o_filename",help=\
@@ -424,8 +438,14 @@ if __name__ == '__main__':
         o_parser.error("Incorrect amount of arguments")
 
     if float(options.minsup) < 0.0 or  float(options.minsup) > 1.0:
-        o_parser.error("Minsup is a percentage and must be between 0\
-        and 1")
+        o_parser.error("Minsup is a percentage and must be between 0 and 1")
+
+    if options.dynamic_window == False and options.w_size == 0:
+        options.w_size = 5
+
+    elif options.dynamic_window == True and options.w_size > 0:
+        o_parser.error("Dynamic windowing and window size\
+                are mutually exclusive")
 
     apriori(float(options.minsup),options.w_size,args[0],options.o_filename,\
             options.dynamic_window,options.threshold)
