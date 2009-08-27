@@ -249,14 +249,14 @@ struct node *check_item_last(struct node *trans_1, struct node *trans_2)
 	
 	while(iter_1->next != NULL)
 	{
-		if(*((int *)iter_1->data) != *((int *)iter_2->data))
+		if(*((uint32_t *)iter_1->data) != *((uint32_t *)iter_2->data))
 		{
 			return NULL;
 		}
 		iter_1 = iter_1->next;
 		iter_2 = iter_2->next;
 	}
-	if(*((int *)iter_1->data) != *((int *)iter_2->data))
+	if(*((uint32_t *)iter_1->data) != *((uint32_t *)iter_2->data))
 	{
 		uint32_t *temp = malloc(sizeof(uint32_t));
 		*temp = *((uint32_t *)iter_2->data);
@@ -307,7 +307,9 @@ struct node* one_item_sets(struct node* T, double *minsup)
 	struct node *item_list = NULL;
 	struct node *temp_list = NULL;
 	temp = NULL;
-	uint32_t item = *((uint32_t *)(iter->data));
+	uint32_t item;
+	if(iter != NULL)
+		item = *((uint32_t *)(iter->data));
 	int count = 0;
 	while(iter != NULL)
 	{		

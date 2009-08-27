@@ -201,13 +201,7 @@ void *get_data(struct node *n, int index)
 		n = n->next; 	
 	}
 
-	// Functions that call this function will only call
-	// this function if they know the data is in the list
-	// Thus, this line should not be outputted and is here
-	// in case there's an error. 	
-	printf("Error: The data was not found in linked list");
-	//assert(FALSE);
-	return 0;
+	return NULL;
 }
 
 struct node *get_node(struct node *n, int index)
@@ -223,13 +217,7 @@ struct node *get_node(struct node *n, int index)
 		n = n->next; 	
 	}
 
-	// Functions that call this function will only call
-	// this function if they know the node is in the list
-	// Thus, this line should not be outputted and is here
-	// in case there's an error. 	
-//	printf("Error: The node was not found in linked list\n");
-//	assert(FALSE);
-	return 0;
+	return NULL;
 }
 
 struct node *copy_list(struct node *n)

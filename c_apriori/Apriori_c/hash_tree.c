@@ -54,6 +54,7 @@ void make_interior(struct hash_tree_node *ht_node)
 int expand_node(struct hash_tree_node *ht_node, int threshold)
 {
 	int k;
+	void *data;
 	uint32_t key;
 	struct node *present;
 	struct hash_tree_node *child = NULL;
@@ -66,23 +67,25 @@ int expand_node(struct hash_tree_node *ht_node, int threshold)
 		initialize_hash_map(&ht_node->children);
 	}
 	while(iter != NULL)
-	{
-		
-		key = *((uint32_t *)get_data((struct node *)iter->data,ht_node->depth));
-		present = get_data_from_hash(ht_node->children,key);
-		if(present != NULL)
+	{	
+		data = get_data((struct node *)iter->data,ht_node->depth);
+		if(data != NULL)
 		{
-			child = present->data;
+			key = *((uint32_t *)data);
+			present = get_data_from_hash(ht_node->children,key);
+			if(present != NULL)
+			{
+				child = present->data;
+			}
+			else
+			{
+				child = malloc(sizeof(struct hash_tree_node));
+				init_hash_tree_node(child,ht_node,leaf,ht_node->depth + 1);
+				add_child(ht_node,key,child);	
+			}
+			
+			add_transaction(child,iter->data);
 		}
-		else
-		{
-			child = malloc(sizeof(struct hash_tree_node));
-			init_hash_tree_node(child,ht_node,leaf,ht_node->depth + 1);
-			add_child(ht_node,key,child);	
-		}
-		
-		add_transaction(child,iter->data);
-		
 		next = iter->next;
 		free(iter);
 		iter = next;
@@ -169,22 +172,28 @@ void add_trans_recursive(struct hash_tree *ht,struct hash_tree_node *ht_node,
 		struct node *trans, uint32_t depth)
 {
 	/* if its an interior node */ 
+	uint32_t num;
+	void *data;
 	if(ht_node->node_type == interior)
 	{
-		uint32_t num = *((uint32_t *)get_data(trans,depth));
-		struct node *ll = get_data_from_hash(ht_node->children,num);
-		if(ll != NULL)
+		data = get_data(trans,depth);
+		if(data != NULL)
 		{
-			add_trans_recursive(ht, (struct hash_tree_node *)ll->data,trans,depth + 1);
-		}
-		else
-		{
-			struct hash_tree_node *temp = malloc(sizeof(struct hash_tree_node));
-			init_hash_tree_node(temp,ht_node,leaf,depth+1);
-			add_transaction(temp,trans);
-			
-			add_child(ht_node,num,temp);
-			
+			num = *((uint32_t *)data);
+			struct node *ll = get_data_from_hash(ht_node->children,num);
+			if(ll != NULL)
+			{
+				add_trans_recursive(ht, (struct hash_tree_node *)ll->data,trans,depth + 1);
+			}
+			else
+			{
+				struct hash_tree_node *temp = malloc(sizeof(struct hash_tree_node));
+				init_hash_tree_node(temp,ht_node,leaf,depth+1);
+				add_transaction(temp,trans);
+				
+				add_child(ht_node,num,temp);
+				
+			}
 		}
 	}
 	/* if its a leaf node */ 
