@@ -36,8 +36,9 @@ class Transaction:
 #                       Parser Function                                    #
 ############################################################################
 
-def parser(w_size,file_name,d_wind):   # Used to get information from file
-                                        #and put the data into transactions
+def parser(w_size,file_name,max_d_size):
+    # Used to get information from file
+    #and put the data into transactions
 
     file=open(file_name,'r')
     # create a list that holds the transactions
@@ -59,7 +60,7 @@ def parser(w_size,file_name,d_wind):   # Used to get information from file
     # create a hash dictionary to map hashed number to functions names
     hash_dict = {}
 
-    if d_wind == False:
+    if max_d_size < 0:
         if w_size == 1:
             for start_t in token_list:
                 for token in token_list[i:i+w_size]:
@@ -87,22 +88,45 @@ def parser(w_size,file_name,d_wind):   # Used to get information from file
                 i += 1
 
     else:
-        for index,start_t in enumerate(token_list):
-            parse_list.add(hash(start_t))
-            hash_dict[hash(start_t)] = start_t
-            for ind, token in enumerate(token_list[index+1:]):
-                if token == start_t:
-                    list_of_parses.append(sorted(list(parse_list)))
-                    parse_list = set([])
-                    break
-                else:
-                    parse_list.add(hash(token))
-                    hash_dict[hash(token)] = token
+        if max_d_size >= 0 and max_d_size <= 1:
+            for index,start_t in enumerate(token_list):
+                parse_list.add(hash(start_t))
+                hash_dict[hash(start_t)] = start_t
+                for ind, token in enumerate(token_list[index+1:]):
+                    if token == start_t:
+                        list_of_parses.append(sorted(list(parse_list)))
+                        parse_list = set([])
+                        break
+                    else:
+                        parse_list.add(hash(token))
+                        hash_dict[hash(token)] = token
 
-            if parse_list != set([]) or token != start_t:
-                if parse_list != set([]):
-                    list_of_parses.append(sorted(list(parse_list)))
-                parse_list = set([])
+                if parse_list != set([]) or token != start_t:
+                    if parse_list != set([]):
+                        list_of_parses.append(sorted(list(parse_list)))
+                    parse_list = set([])
+        else:
+          #  print "dynamic man"
+            for index,start_t in enumerate(token_list):
+                parse_list.add(hash(start_t))
+                hash_dict[hash(start_t)] = start_t
+                counter = 1
+               # print "start_t: ",start_t
+                for ind, token in enumerate(token_list[index+1:]):
+           #         print "token: ",token
+                    if token == start_t or counter >= max_d_size:
+                        list_of_parses.append(sorted(list(parse_list)))
+                        parse_list = set([])
+                        break
+                    else:
+                        parse_list.add(hash(token))
+                        hash_dict[hash(token)] = token
+                    counter += 1
+
+                if parse_list != set([]) or token != start_t:
+                    if parse_list != set([]):
+                        list_of_parses.append(sorted(list(parse_list)))
+                    parse_list = set([])
 
     list_of_parses.sort()
 
@@ -180,13 +204,10 @@ def one_item_sets(T, minsup): # this function gets L_1 using the
 
     all_transactions_set = set(all_transactions_list)
 
-
     for item in all_transactions_set:
         temp = Transaction([item])
         temp.count = all_transactions_list.count(item)
-
         item_list.append(temp)
-
 
     # call frequency_qualifier to remove items whose counts are < minsup
     item_dict = frequency_qualifier(item_list,minsup*total_num_trans)
@@ -314,7 +335,7 @@ def check_item_last(trans1, trans2):
 ############################################################################
 
 
-def apriori(minsup, w_size,file, outputfile,d_window,node_threshold):
+def apriori(minsup, w_size,file, outputfile,d_window_size,node_threshold):
 
     # minsup is the minimum frequency support, w_size is the window
     # size, file is the file taken in as input,outputfile is the file to
@@ -326,7 +347,7 @@ def apriori(minsup, w_size,file, outputfile,d_window,node_threshold):
     # file)
 
 
-    transaction_list,hash_dict =  parser(w_size,file,d_window)
+    transaction_list,hash_dict =  parser(w_size,file,d_window_size)
 
     # Get L_1, the large 1-itemsets that appear more than minsup
     L_1,minsup = one_item_sets(transaction_list,minsup)
@@ -419,15 +440,14 @@ if __name__ == '__main__':
 
 
     o_parser = OptionParser()
-    o_parser.add_option("-d", action="store_true", dest="dynamic_window",
-            default=False,help="This enables dynamic windowing")
-    o_parser.add_option("-m", action="store",dest="minsup",default=0.003,\
-            help="This sets the minsup percentage")
+    o_parser.add_option("-d",action="store",type="int", dest="dynamic_window",
+            help="This enables dynamic windowing",default=-1)
+    o_parser.add_option("-m", action="store",dest="minsup",\
+            help="This sets the minsup percentage",default=0.003)
     o_parser.add_option("-w", action="store",type="int",dest="w_size",help=\
-            "This sets the window size",default=3)
+            "This sets the window size",default=0)
     o_parser.add_option("-t", type="int",action="store",dest="threshold",help=\
             "This sets the node threshold",default=3)
-
     o_parser.add_option("-o",action="store",type="string",dest="o_filename",help=\
             "This sets the output filename", default="outputfile.txt")
 
@@ -440,10 +460,10 @@ if __name__ == '__main__':
     if float(options.minsup) < 0.0 or  float(options.minsup) > 1.0:
         o_parser.error("Minsup is a percentage and must be between 0 and 1")
 
-    if options.dynamic_window == False and options.w_size == 0:
+    if options.dynamic_window < 0 and options.w_size == 0:
         options.w_size = 5
 
-    elif options.dynamic_window == True and options.w_size > 0:
+    elif options.dynamic_window >= 0  and options.w_size > 0:
         o_parser.error("Dynamic windowing and window size\
                 are mutually exclusive")
 
