@@ -34,7 +34,7 @@ struct node *check_item_last(struct node *trans_1, struct node *trans_2);
 		
 void print_lists(struct node *n);
 
-struct node* parser(char* file_name,int w_size, int d_wind);
+struct node* parser(char* file_name,int w_size, int max_d_size);
 
 struct node* one_item_sets(struct node* T, double *minsup);
 
@@ -46,7 +46,7 @@ struct node* get_windows(struct node* token_list, int w_size);
 
 int check_inside(int value, struct node *list);
 
-struct node* get_dynamic_windows(struct node* token_list);
+struct node* get_dynamic_windows(struct node* token_list,int max_d_size);
 
 int compare_ints(void* first, void* second);
 

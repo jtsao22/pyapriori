@@ -2,13 +2,14 @@
 #include <stdarg.h>
 #include <stddef.h>
 #include <setjmp.h>
-#include <cmockery.h>
+
 #include <stdint.h>
 #include "hash_map.h"
 #include "linked_list.h"
 #include "hash_tree.h"
 
 #ifdef CMOCKERY
+#include <cmockery.h>
 extern void* _test_malloc(const size_t size, const char* file, const int line);
 extern void _test_free(void* const ptr, const char* file, const int line);
 #define malloc(size) _test_malloc(size, __FILE__, __LINE__)

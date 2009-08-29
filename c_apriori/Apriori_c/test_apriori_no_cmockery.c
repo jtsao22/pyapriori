@@ -6,21 +6,21 @@
 
 int main(int argc, char* argv[]) 
 {
-	int d_flag = 0;
+	
 	int c;
 	double m_value = .003;
+	int d_value = -1;
 	int t_value = 3;
-	int w_value = 3;
+	int w_value = 0;
 	char *o_filename = "outputfile.txt";
 	struct node *iter;
 	struct node *next;
-	
-	while((c = getopt(argc,argv,"dm:w:t:o:")) != -1)
+	while((c = getopt(argc,argv,"d:m:w:t:o:")) != -1)
 	{		
 		switch(c)
 		{
 			case 'd':
-				d_flag = 1;
+				d_value = atoi(optarg);
 				break;
 			case 'm':
 				m_value = atof(optarg);
@@ -39,12 +39,40 @@ int main(int argc, char* argv[])
 		}
 	}
 	
-	printf("d_flag = %i\nm_value = %f\nw_value = %i\nt_value = %i\no_filename: %s\n",d_flag,m_value,w_value,t_value,o_filename);
+	
+	
+	printf("d_value = %i\nm_value = %f\nw_value = %i\nt_value = %i\no_filename: %s\n",d_value,m_value,w_value,t_value,o_filename);
 	
 	printf("Non-option argument: %s\n",argv[optind]);	
 	
-	struct node *freq_list = apriori(m_value,w_value,argv[optind], o_filename,d_flag,t_value);
-//	struct node *freq_list = apriori(.09,4,"test5.dat", "output.dat",FALSE,3);	
+	int counter = 0;
+	int index;
+	for (index = optind; index < argc; index++)
+	{
+    	counter += 1;
+	}
+   	if(counter > 1)
+   	{
+   		printf("ERROR: Incorrect Amount of Arguments\n");
+   		exit(0);
+   	}
+   	
+   	if(m_value < 0.0 || m_value > 1.0)
+   	{
+   		printf("ERROR: Minsup is a percentage and must be between 0 and 1\n");
+   		exit(0); 
+   	}
+   	
+   	if(d_value < 0 && w_value == 0)
+   		w_value = 5;
+   	else if(d_value >= 0 && w_value > 0)
+   	{
+   		printf("ERROR: Dynamic Windowing and Window Size are mutually exclusive\n");
+   		exit(0);
+   	}
+   	  	
+	struct node *freq_list = apriori(m_value,w_value,argv[optind], o_filename,d_value,t_value);
+
 	iter = freq_list;
 	while(iter != NULL)
 	{

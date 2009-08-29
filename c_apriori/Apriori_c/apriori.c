@@ -14,9 +14,9 @@ extern void _test_free(void* const ptr, const char* file, const int line);
 
 
 struct node* apriori(double minsup, int w_size,
-		char *i_file, char *o_file, int d_window, unsigned char node_threshold)
+		char *i_file, char *o_file, int d_window_size, unsigned char node_threshold)
 {
-	struct node *transaction_list = parser(i_file, w_size,d_window);
+	struct node *transaction_list = parser(i_file, w_size,d_window_size);
 
 	struct node *L_kminusone_set = one_item_sets(transaction_list,&minsup);
 
@@ -51,9 +51,6 @@ struct node* apriori(double minsup, int w_size,
 		
 		if(ht->l_k_set != NULL)
 		{
-//			printf("l_k_sets: \n");
-//			print_lists(ht->l_k_set);
-//			printf("_____________\n");
 			add(&all_Lk,ht->l_k_set,0);
 		}	
 		
@@ -371,7 +368,7 @@ struct node* one_item_sets(struct node* T, double *minsup)
 	return item_list;
 }
 
-struct node* parser(char* file_name,int w_size, int d_wind)
+struct node* parser(char* file_name,int w_size, int max_d_size)
 {
 	struct node* list_of_parses = NULL;
 	// Open the file and get the file descriptor
@@ -384,7 +381,7 @@ struct node* parser(char* file_name,int w_size, int d_wind)
 	// get the token list
 	struct node* token_list = get_token_list(fp);
 
-	if(d_wind == FALSE)
+	if(max_d_size < 0)
 	{
 		//get the windows w/o dynamic windowing
 		list_of_parses = get_windows(token_list, w_size);
@@ -393,7 +390,7 @@ struct node* parser(char* file_name,int w_size, int d_wind)
 	else
 	{
 		/* get the windows w/dynamic windowing */
-		list_of_parses = get_dynamic_windows(token_list);
+		list_of_parses = get_dynamic_windows(token_list,max_d_size);
 	}
 	//sort the list
 	list_of_parses = mergesort(list_of_parses,&compare_lists);
@@ -500,13 +497,20 @@ int check_inside(int value, struct node *list)
 	return FALSE;
 }
 
-struct node* get_dynamic_windows(struct node* token_list)
+struct node* get_dynamic_windows(struct node* token_list,int max_d_size)
 {
 	uint32_t *temp = NULL;
+	int infinite = FALSE;
+	int counter;
 	struct node *parse_list = NULL;
  	struct node *list_of_parses = NULL;
 	struct node* start_t = token_list;
 	struct node* token = NULL;
+	if(max_d_size >= 0 && max_d_size <= 1)
+	{
+		infinite = TRUE;
+		max_d_size = 2;
+	}
 	while(start_t != NULL)
 	{
 		temp = (uint32_t *)malloc(sizeof(uint32_t));
@@ -517,11 +521,15 @@ struct node* get_dynamic_windows(struct node* token_list)
 			exit(0);
 		}
 		token = start_t->next;
+		counter = 1;
+		
 		while(token != NULL)
 		{
-			if(*((uint32_t *)token->data) == *((uint32_t *)start_t->data))
+			
+				
+			if(*((uint32_t *)token->data) == *((uint32_t *)start_t->data) || counter >= max_d_size)
 			{
-				parse_list = mergesort(parse_list,&compare_ints);
+				
 				if(!add(&list_of_parses,(void *)parse_list,0))
 				{
 					printf("Error with Memory Allocation");
@@ -529,18 +537,25 @@ struct node* get_dynamic_windows(struct node* token_list)
 				}
 				parse_list = NULL;
 				break;
+				
 			}
 			else
 			{
-				temp = (uint32_t *)malloc(sizeof(uint32_t));
-				*temp = *((uint32_t *)token->data);
-				if(!add(&parse_list,(void *)temp,0))
+				if(!check_inside(*((uint32_t *)token->data), parse_list))
 				{
-					printf("Error while reading from file");
-					exit(0);
+					temp = (uint32_t *)malloc(sizeof(uint32_t));
+					*temp = *((uint32_t *)token->data);
+			
+					if(!add(&parse_list,(void *)temp,0))
+					{
+						printf("Error while reading from file");
+						exit(0);
+					}
 				}
 			}
 			token = token->next;
+			if(infinite == FALSE)
+				counter += 1;
 		}
 		if(parse_list != NULL || *((uint32_t *)token->data) != *((uint32_t *)start_t->data))
 		{
@@ -556,8 +571,6 @@ struct node* get_dynamic_windows(struct node* token_list)
 			parse_list = NULL;
 		}
 		start_t = start_t->next;
-
-
 	}
 	return list_of_parses;
 

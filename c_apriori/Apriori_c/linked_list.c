@@ -72,7 +72,7 @@ unsigned char is_inside(struct node *list_of_lists, struct node *list)
 		l_iter = list;
 		while(temp != NULL)
 		{
-			if(*((int *)temp->data) != *((int *)l_iter->data))
+			if(*((uint32_t *)temp->data) != *((uint32_t *)l_iter->data))
 				inside = FALSE;
 			l_iter = l_iter->next;
 			temp = temp->next;
